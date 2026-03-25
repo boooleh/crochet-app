@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#e8799a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="My Patterns" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<title>My Crochet Patterns</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&display=swap');
+  :root {
+    --color-bg: #fffaf7;
+    --color-bg-secondary: #fdf3ee;
+    --color-bg-tertiary: #fde8f0;
+    --color-text-primary: #3d2a35;
+    --color-text-secondary: #9b7a88;
+    --color-border: rgba(200,140,170,0.25);
+    --color-border-hover: rgba(200,140,170,0.55);
+    /* pastel rose as primary accent */
+    --color-accent: #e8799a;
+    --color-accent-dark: #d45c80;
+    --color-accent-light: #fde8f0;
+    --color-accent-text: #fff6f9;
+    /* pastel category tag: lavender */
+    --color-cat-bg: #ede8fd;
+    --color-cat-text: #7c65c1;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --font: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  }
+  body {
+    font-family: var(--font);
+    background: linear-gradient(135deg, #fde8f0 0%, #fef3e8 50%, #eef0fd 100%);
+    background-attachment: fixed;
+    color: var(--color-text-primary);
+    min-height: 100vh;
+  }
+  .app { padding: 2rem 1.25rem; max-width: 860px; margin: 0 auto; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 12px; }
+  .header-left h1 { font-size: 26px; font-weight: 700; color: var(--color-accent-dark); letter-spacing: -0.3px; }
+  .header-left p { font-size: 13px; color: var(--color-text-secondary); margin-top: 3px; }
+  .btn-primary { background: var(--color-accent); color: var(--color-accent-text); border: none; padding: 9px 18px; border-radius: var(--radius-md); font-size: 14px; cursor: pointer; font-weight: 600; font-family: var(--font); transition: background 0.15s, transform 0.1s; box-shadow: 0 2px 8px rgba(232,121,154,0.3); }
+  .btn-primary:hover { background: var(--color-accent-dark); transform: translateY(-1px); }
+  .filters { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
+  .filters input, .filters select { padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 14px; background: var(--color-bg); color: var(--color-text-primary); font-family: var(--font); outline: none; transition: border-color 0.15s; }
+  .filters input { flex: 1; min-width: 160px; }
+  .filters input:focus, .filters select:focus { border-color: var(--color-accent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+  .card { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1rem 1.1rem; cursor: pointer; transition: border-color 0.15s, transform 0.12s, box-shadow 0.12s; }
+  .card:hover { border-color: var(--color-accent); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(232,121,154,0.15); }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--color-text-primary); line-height: 1.35; }
+  .fav-btn { background: none; border: none; cursor: pointer; font-size: 17px; padding: 0; line-height: 1; flex-shrink: 0; color: #e8799a; transition: transform 0.1s; }
+  .fav-btn:hover { transform: scale(1.25); }
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-easy { background: #d9f5e2; color: #2d6e4a; }
+  .badge-medium { background: #fce8d0; color: #8a5020; }
+  .badge-hard { background: #fdd5df; color: #b03060; }
+  .badge-done { background: #d0f0ee; color: #1e6e68; }
+  .badge-wip { background: #dce8fd; color: #3060a8; }
+  .badge-todo { background: #ede8fd; color: #6050a0; }
+  .card-meta { font-size: 12px; color: var(--color-text-secondary); margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
+  .card-badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+  .cat-tag { background: var(--color-cat-bg); color: var(--color-cat-text); font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 600; }
+  .empty { text-align: center; padding: 3rem 1rem; color: var(--color-text-secondary); font-size: 14px; grid-column: 1 / -1; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(100,50,70,0.35); display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; z-index: 100; overflow-y: auto; }
+  .modal { background: var(--color-bg); border-radius: var(--radius-lg); border: 1px solid var(--color-border); padding: 1.5rem; width: 100%; max-width: 500px; animation: slideUp 0.18s ease; }
+  @keyframes slideUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+  .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 1.25rem; color: var(--color-text-primary); }
+  .form-row { margin-bottom: 14px; }
+  .form-row label { font-size: 13px; color: var(--color-text-secondary); display: block; margin-bottom: 5px; font-weight: 600; }
+  .form-row input, .form-row select, .form-row textarea { width: 100%; padding: 8px 11px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 14px; background: var(--color-bg); color: var(--color-text-primary); font-family: var(--font); outline: none; transition: border-color 0.15s; }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color: var(--color-accent); }
+  .form-row textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; align-items: center; }
+  .btn-sec { background: none; border: 1px solid var(--color-border); color: var(--color-text-secondary); padding: 8px 16px; border-radius: var(--radius-md); font-size: 14px; cursor: pointer; font-family: var(--font); transition: background 0.12s; }
+  .btn-sec:hover { background: var(--color-bg-secondary); }
+  .btn-del { background: none; border: 1px solid #fdd5df; color: #b03060; padding: 8px 16px; border-radius: var(--radius-md); font-size: 14px; cursor: pointer; margin-right: auto; font-family: var(--font); transition: background 0.12s; }
+  .btn-del:hover { background: #fde8f0; }
+  .pdf-drop { border: 2px dashed var(--color-border); border-radius: var(--radius-md); padding: 1.25rem; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: var(--color-bg-secondary); }
+  .pdf-drop:hover, .pdf-drop.drag-over { border-color: var(--color-accent); background: var(--color-accent-light); }
+  .pdf-drop p { font-size: 13px; color: var(--color-text-secondary); margin-top: 6px; }
+  .pdf-drop .pdf-icon { font-size: 28px; display: block; }
+  .pdf-attached { display: flex; align-items: center; gap: 10px; background: #fde8f0; border: 1px solid #f5bdd0; border-radius: var(--radius-md); padding: 10px 12px; }
+  .pdf-attached span { font-size: 13px; color: #b03060; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pdf-remove { background: none; border: none; cursor: pointer; font-size: 16px; color: #b03060; padding: 0; line-height: 1; flex-shrink: 0; }
+  .card-pdf-badge { display: inline-flex; align-items: center; gap: 4px; background: #fde8f0; color: #b03060; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
+  .btn-view-pdf { background: #fde8f0; color: #b03060; border: 1px solid #f5bdd0; padding: 8px 14px; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: background 0.12s; display: flex; align-items: center; gap: 6px; }
+  .btn-view-pdf:hover { background: #fdd5df; }
+  .pdf-viewer-overlay { position: fixed; inset: 0; background: rgba(60,20,40,0.7); z-index: 200; display: flex; flex-direction: column; }
+  .pdf-viewer-bar { background: var(--color-bg); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--color-border); flex-shrink: 0; }
+  .pdf-viewer-bar span { font-size: 14px; font-weight: 600; color: var(--color-text-primary); }
+  .pdf-viewer-bar button { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--color-text-secondary); padding: 0 4px; font-family: var(--font); }
+  .pdf-viewer-bar button:hover { color: var(--color-text-primary); }
+  .pdf-iframe { flex: 1; width: 100%; border: none; }
+
+  /* Step checklist */
+  .steps-list { display: flex; flex-direction: column; gap: 4px; }
+  .step-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px; border-radius: var(--radius-md); cursor: pointer; transition: background 0.15s, opacity 0.35s; border: 1px solid transparent; user-select: none; }
+  .step-row:hover { background: var(--color-bg-secondary); border-color: var(--color-border); }
+  .step-row.done { opacity: 0.38; }
+  .step-check { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--color-accent); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: background 0.2s, border-color 0.2s; }
+  .step-row.done .step-check { background: var(--color-accent); border-color: var(--color-accent); }
+  .step-check-tick { display: none; color: white; font-size: 11px; font-weight: 700; line-height: 1; }
+  .step-row.done .step-check-tick { display: block; }
+  .step-text { font-size: 14px; line-height: 1.6; color: var(--color-text-primary); transition: text-decoration 0.2s; }
+  .step-row.done .step-text { text-decoration: line-through; color: var(--color-text-secondary); }
+  .steps-progress { margin-bottom: 10px; }
+  .steps-progress-bar-bg { height: 6px; background: var(--color-border); border-radius: 99px; overflow: hidden; }
+  .steps-progress-bar { height: 100%; background: linear-gradient(90deg, #e8799a, #c97bb8); border-radius: 99px; transition: width 0.35s ease; }
+  .steps-progress-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 5px; display: flex; justify-content: space-between; }
+  .btn-reset-steps { background: none; border: none; font-size: 12px; color: var(--color-text-secondary); cursor: pointer; font-family: var(--font); padding: 0; text-decoration: underline; }
+  .btn-reset-steps:hover { color: var(--color-accent-dark); }
+
+  /* Read view */
+  .read-modal { background: var(--color-bg); border-radius: var(--radius-lg); border: 1px solid var(--color-border); width: 100%; max-width: 540px; animation: slideUp 0.18s ease; overflow: hidden; }
+  .read-hero { background: linear-gradient(135deg, #fde8f0, #ede8fd); padding: 1.5rem 1.5rem 1.25rem; position: relative; }
+  .read-hero-title { font-size: 20px; font-weight: 700; color: var(--color-accent-dark); line-height: 1.3; padding-right: 2.5rem; }
+  .read-hero-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .read-fav-btn { position: absolute; top: 1.25rem; right: 1.25rem; background: none; border: none; cursor: pointer; font-size: 22px; color: #e8799a; line-height: 1; padding: 0; transition: transform 0.1s; }
+  .read-fav-btn:hover { transform: scale(1.2); }
+  .read-body { padding: 1.25rem 1.5rem 0.5rem; }
+  .read-section { margin-bottom: 1.1rem; }
+  .read-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); margin-bottom: 6px; }
+  .read-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .read-chip { display: flex; align-items: center; gap: 7px; background: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 7px 12px; font-size: 13px; color: var(--color-text-primary); font-weight: 500; }
+  .read-notes { background: var(--color-bg-secondary); border-radius: var(--radius-md); padding: 12px 14px; font-size: 14px; line-height: 1.7; color: var(--color-text-primary); white-space: pre-wrap; border-left: 3px solid var(--color-accent); }
+  .read-actions { display: flex; gap: 8px; padding: 1rem 1.5rem; border-top: 1px solid var(--color-border); align-items: center; }
+  .btn-edit { background: none; border: 1px solid var(--color-border); color: var(--color-text-secondary); padding: 8px 16px; border-radius: var(--radius-md); font-size: 14px; cursor: pointer; font-family: var(--font); transition: background 0.12s; }
+  .btn-edit:hover { background: var(--color-bg-secondary); color: var(--color-text-primary); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-left">
+      <h1>🧶 My crochet patterns</h1>
+      <p id="count-label">0 patterns saved</p>
+    </div>
+    <button class="btn-primary" onclick="openNew()">+ Add pattern</button>
+  </div>
+  <div class="filters">
+    <input type="text" id="search" placeholder="Search patterns…" oninput="render()" />
+    <select id="filter-cat" onchange="render()">
+      <option value="">All categories</option>
+      <option>Amigurumi</option><option>Blanket</option><option>Hat</option>
+      <option>Shawl</option><option>Bag</option><option>Clothing</option>
+      <option>Home decor</option><option>Other</option>
+    </select>
+    <select id="filter-status" onchange="render()">
+      <option value="">All statuses</option>
+      <option>To do</option><option>In progress</option><option>Done</option>
+    </select>
+    <select id="filter-fav" onchange="render()">
+      <option value="">All</option>
+      <option value="1">Favourites only</option>
+    </select>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div id="modal-area"></div>
+
+<script>
+let patterns = JSON.parse(localStorage.getItem('crochet_patterns_v2') || 'null') || [
+  {id:1,name:'Sunflower granny square blanket',category:'Blanket',difficulty:'Easy',status:'Done',yarn:'Paintbox Simply DK – Yellow, Green',hook:'4.0mm',notes:'Make 48 squares, 6×8 grid. Join with slip stitch in cream.',fav:true},
+  {id:2,name:'Mushroom amigurumi',category:'Amigurumi',difficulty:'Medium',status:'In progress',yarn:'Scheepjes Catona – Red, White',hook:'2.5mm',notes:'Stuff firmly. Leave 3cm tail for sewing.',fav:false},
+  {id:3,name:'Chunky ribbed beanie',category:'Hat',difficulty:'Easy',status:'To do',yarn:'Drops Eskimo – Mustard',hook:'7.0mm',notes:'Work in the round, BLO for ribbing effect.',fav:true}
+];
+let nextId = Math.max(...patterns.map(p=>p.id), 3) + 1;
+
+function save() { localStorage.setItem('crochet_patterns_v2', JSON.stringify(patterns)); }
+
+function diffBadge(d) {
+  const cls = d==='Easy'?'easy':d==='Medium'?'medium':'hard';
+  return `<span class="badge badge-${cls}">${d}</span>`;
+}
+function statusBadge(s) {
+  const cls = s==='Done'?'done':s==='In progress'?'wip':'todo';
+  return `<span class="badge badge-${cls}">${s}</span>`;
+}
+
+function filtered() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const cat = document.getElementById('filter-cat').value;
+  const st = document.getElementById('filter-status').value;
+  const fav = document.getElementById('filter-fav').value;
+  return patterns.filter(p =>
+    (!q || p.name.toLowerCase().includes(q) || (p.notes||'').toLowerCase().includes(q) || (p.yarn||'').toLowerCase().includes(q)) &&
+    (!cat || p.category===cat) &&
+    (!st || p.status===st) &&
+    (!fav || p.fav)
+  );
+}
+
+function render() {
+  const list = filtered();
+  document.getElementById('count-label').textContent = `${patterns.length} pattern${patterns.length!==1?'s':''} saved`;
+  const grid = document.getElementById('grid');
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty">No patterns found. Try adjusting your filters or add a new pattern.</div>';
+    return;
+  }
+  grid.innerHTML = list.map(p => `
+    <div class="card" onclick="openReadView(${p.id})">
+      <div class="card-top">
+        <div class="card-title">${esc(p.name)}</div>
+        <button class="fav-btn" onclick="event.stopPropagation();toggleFav(${p.id})" title="Toggle favourite">${p.fav?'★':'☆'}</button>
+      </div>
+      <div class="card-badges">
+        ${p.category?`<span class="cat-tag">${esc(p.category)}</span>`:''}
+        ${p.difficulty?diffBadge(p.difficulty):''}
+        ${p.status?statusBadge(p.status):''}
+        ${p.pdfName?`<span class="card-pdf-badge">📄 PDF</span>`:''}
+      </div>
+      <div class="card-meta">
+        ${p.yarn?`<span>🧶 ${esc(p.yarn)}</span>`:''}
+        ${p.hook?`<span>🪝 Hook ${esc(p.hook)}</span>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toggleFav(id) {
+  const p = patterns.find(x=>x.id===id);
+  if (p) { p.fav = !p.fav; save(); render(); }
+}
+
+function closeModal() { document.getElementById('modal-area').innerHTML = ''; }
+
+function openNew() {
+  document.getElementById('modal-area').innerHTML = modalHTML(null);
+}
+
+function openReadView(id) {
+  const p = patterns.find(x=>x.id===id);
+  if (!p) return;
+  document.getElementById('modal-area').innerHTML = readViewHTML(p);
+}
+
+function openEdit(id) {
+  const p = patterns.find(x=>x.id===id);
+  if (p) document.getElementById('modal-area').innerHTML = modalHTML(p);
+}
+
+function openDetail(id) { openEdit(id); }
+
+function getStepsDone(id) {
+  try { return JSON.parse(localStorage.getItem('crochet_steps_' + id) || '[]'); } catch { return []; }
+}
+function saveStepsDone(id, done) {
+  localStorage.setItem('crochet_steps_' + id, JSON.stringify(done));
+}
+function toggleStep(id, idx) {
+  const done = getStepsDone(id);
+  const pos = done.indexOf(idx);
+  if (pos === -1) done.push(idx); else done.splice(pos, 1);
+  saveStepsDone(id, done);
+  refreshSteps(id);
+}
+function resetSteps(id) {
+  saveStepsDone(id, []);
+  refreshSteps(id);
+}
+function refreshSteps(id) {
+  const p = patterns.find(x=>x.id===id);
+  if (!p) return;
+  const lines = (p.notes||'').split('\n').filter(l=>l.trim());
+  const done = getStepsDone(id);
+  const total = lines.length;
+  const doneCount = done.length;
+  const pct = total ? Math.round(doneCount / total * 100) : 0;
+  const bar = document.getElementById('steps-bar-' + id);
+  const lbl = document.getElementById('steps-lbl-' + id);
+  if (bar) bar.style.width = pct + '%';
+  if (lbl) lbl.textContent = `${doneCount} of ${total} steps done`;
+  lines.forEach((_, i) => {
+    const row = document.getElementById('step-row-' + id + '-' + i);
+    if (!row) return;
+    if (done.includes(i)) row.classList.add('done');
+    else row.classList.remove('done');
+  });
+}
+
+function readViewHTML(p) {
+  const hasPdf = !!p.pdfName;
+  const lines = (p.notes||'').split('\n').filter(l=>l.trim());
+  const hasSteps = lines.length > 0;
+  const done = getStepsDone(p.id);
+  const total = lines.length;
+  const doneCount = done.filter(i=>i<total).length;
+  const pct = total ? Math.round(doneCount / total * 100) : 0;
+
+  const stepsHTML = hasSteps ? `
+    <div class="read-section">
+      <div class="read-section-label" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Steps &amp; notes</span>
+        <button class="btn-reset-steps" onclick="resetSteps(${p.id})">Reset all</button>
+      </div>
+      <div class="steps-progress">
+        <div class="steps-progress-label">
+          <span id="steps-lbl-${p.id}">${doneCount} of ${total} steps done</span>
+          <span>${pct}%</span>
+        </div>
+        <div class="steps-progress-bar-bg">
+          <div class="steps-progress-bar" id="steps-bar-${p.id}" style="width:${pct}%"></div>
+        </div>
+      </div>
+      <div class="steps-list">
+        ${lines.map((line, i) => `
+          <div class="step-row${done.includes(i)?' done':''}" id="step-row-${p.id}-${i}" onclick="toggleStep(${p.id},${i})">
+            <div class="step-check"><span class="step-check-tick">✓</span></div>
+            <div class="step-text">${esc(line)}</div>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
+  return `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="read-modal">
+    <div class="read-hero">
+      <div class="read-hero-title">${esc(p.name)}</div>
+      <button class="read-fav-btn" onclick="toggleFav(${p.id});openReadView(${p.id})" title="Toggle favourite">${p.fav?'★':'☆'}</button>
+      <div class="read-hero-badges">
+        ${p.category?`<span class="cat-tag">${esc(p.category)}</span>`:''}
+        ${p.difficulty?diffBadge(p.difficulty):''}
+        ${p.status?statusBadge(p.status):''}
+        ${hasPdf?`<span class="card-pdf-badge">📄 PDF</span>`:''}
+      </div>
+    </div>
+    <div class="read-body">
+      ${(p.yarn||p.hook) ? `
+      <div class="read-section">
+        <div class="read-section-label">Materials</div>
+        <div class="read-chips">
+          ${p.yarn?`<div class="read-chip"><span>🧶</span><span>${esc(p.yarn)}</span></div>`:''}
+          ${p.hook?`<div class="read-chip"><span>🪝</span><span>Hook ${esc(p.hook)}</span></div>`:''}
+        </div>
+      </div>` : ''}
+      ${stepsHTML}
+      ${!p.yarn && !p.hook && !hasSteps ? `<p style="font-size:13px;color:var(--color-text-secondary);padding-bottom:0.5rem">No details added yet.</p>` : ''}
+    </div>
+    <div class="read-actions">
+      ${hasPdf?`<button class="btn-view-pdf" onclick="viewPdf(${p.id})">📄 Open PDF</button>`:''}
+      <div style="flex:1"></div>
+      <button class="btn-sec" onclick="closeModal()">Close</button>
+      <button class="btn-edit" onclick="openEdit(${p.id})">✏️ Edit</button>
+    </div>
+  </div></div>`;
+}
+
+function modalHTML(p) {
+  const cats = ['Amigurumi','Blanket','Hat','Shawl','Bag','Clothing','Home decor','Other'];
+  const diffs = ['Easy','Medium','Hard'];
+  const statuses = ['To do','In progress','Done'];
+  const pdfSection = p && p.pdfName
+    ? `<div class="form-row">
+        <label>Pattern PDF</label>
+        <div class="pdf-attached">
+          <span>📄 ${esc(p.pdfName)}</span>
+          <button class="btn-view-pdf" onclick="viewPdf(${p.id})" type="button">Open</button>
+          <button class="pdf-remove" onclick="removePdf(${p.id})" title="Remove PDF" type="button">✕</button>
+        </div>
+       </div>`
+    : `<div class="form-row">
+        <label>Pattern PDF</label>
+        <div class="pdf-drop" id="pdf-drop-zone" onclick="document.getElementById('pdf-file-input').click()"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="handlePdfDrop(event)">
+          <span class="pdf-icon">📄</span>
+          <p>Click or drag & drop a PDF pattern</p>
+        </div>
+        <input type="file" id="pdf-file-input" accept="application/pdf" style="display:none" onchange="handlePdfSelect(event)" />
+        <div id="pdf-preview-attached" style="display:none" class="pdf-attached">
+          <span id="pdf-preview-name"></span>
+          <button class="pdf-remove" onclick="clearPdfPreview()" type="button">✕</button>
+        </div>
+       </div>`;
+  return `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2>${p ? 'Edit pattern' : 'New pattern'}</h2>
+    <div class="form-row">
+      <label>Pattern name</label>
+      <input id="f-name" value="${p?esc(p.name):''}" placeholder="e.g. Bunny amigurumi" />
+    </div>
+    <div class="form-row-2">
+      <div class="form-row" style="margin-bottom:0">
+        <label>Category</label>
+        <select id="f-cat">${cats.map(c=>`<option${p&&p.category===c?' selected':''}>${c}</option>`).join('')}</select>
+      </div>
+      <div class="form-row" style="margin-bottom:0">
+        <label>Difficulty</label>
+        <select id="f-diff">${diffs.map(d=>`<option${p&&p.difficulty===d?' selected':''}>${d}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row" style="margin-bottom:0">
+        <label>Status</label>
+        <select id="f-status">${statuses.map(s=>`<option${p&&p.status===s?' selected':''}>${s}</option>`).join('')}</select>
+      </div>
+      <div class="form-row" style="margin-bottom:0">
+        <label>Hook size</label>
+        <input id="f-hook" value="${p?esc(p.hook||''):''}" placeholder="e.g. 4.0mm" />
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Yarn (brand, weight, colour)</label>
+      <input id="f-yarn" value="${p?esc(p.yarn||''):''}" placeholder="e.g. Drops Safran – Coral" />
+    </div>
+    <div class="form-row">
+      <label>Notes</label>
+      <textarea id="f-notes" placeholder="Pattern notes, stitch counts, tips…">${p?esc(p.notes||''):''}</textarea>
+    </div>
+    ${pdfSection}
+    <div class="modal-actions">
+      ${p?`<button class="btn-del" onclick="deletePattern(${p.id})">Delete</button>`:''}
+      <button class="btn-sec" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="${p?`saveEdit(${p.id})`:'saveNew()'}">${p?'Save changes':'Add pattern'}</button>
+    </div>
+  </div></div>`;
+}
+
+let pendingPdfData = null;
+let pendingPdfName = null;
+
+function handlePdfSelect(e) {
+  const file = e.target.files[0];
+  if (file) loadPdfFile(file);
+}
+function handlePdfDrop(e) {
+  e.preventDefault();
+  document.getElementById('pdf-drop-zone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === 'application/pdf') loadPdfFile(file);
+}
+function loadPdfFile(file) {
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    pendingPdfData = ev.target.result;
+    pendingPdfName = file.name;
+    const zone = document.getElementById('pdf-drop-zone');
+    const preview = document.getElementById('pdf-preview-attached');
+    const nameEl = document.getElementById('pdf-preview-name');
+    if (zone) zone.style.display = 'none';
+    if (preview) preview.style.display = 'flex';
+    if (nameEl) nameEl.textContent = '📄 ' + file.name;
+  };
+  reader.readAsDataURL(file);
+}
+function clearPdfPreview() {
+  pendingPdfData = null; pendingPdfName = null;
+  const zone = document.getElementById('pdf-drop-zone');
+  const preview = document.getElementById('pdf-preview-attached');
+  if (zone) zone.style.display = '';
+  if (preview) preview.style.display = 'none';
+}
+function removePdf(id) {
+  const p = patterns.find(x=>x.id===id);
+  if (!p) return;
+  if (!confirm('Remove the PDF from this pattern?')) return;
+  localStorage.removeItem('crochet_pdf_' + id);
+  p.pdfName = null;
+  save();
+  openReadView(id);
+}
+function viewPdf(id) {
+  const data = localStorage.getItem('crochet_pdf_' + id);
+  const p = patterns.find(x=>x.id===id);
+  if (!data) { alert('PDF not found.'); return; }
+  const viewer = document.createElement('div');
+  viewer.className = 'pdf-viewer-overlay';
+  viewer.id = 'pdf-viewer';
+  viewer.innerHTML = `
+    <div class="pdf-viewer-bar">
+      <span>📄 ${p ? esc(p.pdfName||p.name) : 'Pattern PDF'}</span>
+      <button onclick="document.getElementById('pdf-viewer').remove()" title="Close">✕</button>
+    </div>
+    <iframe class="pdf-iframe" src="${data}"></iframe>`;
+  document.body.appendChild(viewer);
+}
+
+function saveNew() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { document.getElementById('f-name').style.borderColor='#E24B4A'; return; }
+  const newId = nextId++;
+  const pat = {
+    id: newId,
+    name,
+    category: document.getElementById('f-cat').value,
+    difficulty: document.getElementById('f-diff').value,
+    status: document.getElementById('f-status').value,
+    hook: document.getElementById('f-hook').value.trim(),
+    yarn: document.getElementById('f-yarn').value.trim(),
+    notes: document.getElementById('f-notes').value.trim(),
+    fav: false,
+    pdfName: pendingPdfName || null
+  };
+  if (pendingPdfData) localStorage.setItem('crochet_pdf_' + newId, pendingPdfData);
+  pendingPdfData = null; pendingPdfName = null;
+  patterns.push(pat);
+  save(); closeModal(); render();
+}
+
+function saveEdit(id) {
+  const p = patterns.find(x=>x.id===id);
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { document.getElementById('f-name').style.borderColor='#E24B4A'; return; }
+  p.name = name;
+  p.category = document.getElementById('f-cat').value;
+  p.difficulty = document.getElementById('f-diff').value;
+  p.status = document.getElementById('f-status').value;
+  p.hook = document.getElementById('f-hook').value.trim();
+  p.yarn = document.getElementById('f-yarn').value.trim();
+  p.notes = document.getElementById('f-notes').value.trim();
+  if (pendingPdfData) {
+    localStorage.setItem('crochet_pdf_' + id, pendingPdfData);
+    p.pdfName = pendingPdfName;
+    pendingPdfData = null; pendingPdfName = null;
+  }
+  save(); closeModal(); render();
+}
+
+function deletePattern(id) {
+  if (!confirm('Delete this pattern? This cannot be undone.')) return;
+  localStorage.removeItem('crochet_pdf_' + id);
+  patterns = patterns.filter(x=>x.id!==id);
+  save(); closeModal(); render();
+}
+
+render();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
