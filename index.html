@@ -1,551 +1,977 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#e8799a" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="My Patterns" />
-<link rel="manifest" href="manifest.json" />
-<link rel="apple-touch-icon" href="icons/icon-192.png" />
-<title>My Crochet Patterns</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="theme-color" content="#7c4dff"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Crochet"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<title>My Crochet</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&display=swap');
-  :root {
-    --color-bg: #fffaf7;
-    --color-bg-secondary: #fdf3ee;
-    --color-bg-tertiary: #fde8f0;
-    --color-text-primary: #3d2a35;
-    --color-text-secondary: #9b7a88;
-    --color-border: rgba(200,140,170,0.25);
-    --color-border-hover: rgba(200,140,170,0.55);
-    /* pastel rose as primary accent */
-    --color-accent: #e8799a;
-    --color-accent-dark: #d45c80;
-    --color-accent-light: #fde8f0;
-    --color-accent-text: #fff6f9;
-    /* pastel category tag: lavender */
-    --color-cat-bg: #ede8fd;
-    --color-cat-text: #7c65c1;
-    --radius-md: 10px;
-    --radius-lg: 16px;
-    --font: 'Nunito', 'Segoe UI', system-ui, sans-serif;
-  }
-  body {
-    font-family: var(--font);
-    background: linear-gradient(135deg, #fde8f0 0%, #fef3e8 50%, #eef0fd 100%);
-    background-attachment: fixed;
-    color: var(--color-text-primary);
-    min-height: 100vh;
-  }
-  .app { padding: 2rem 1.25rem; max-width: 860px; margin: 0 auto; }
-  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 12px; }
-  .header-left h1 { font-size: 26px; font-weight: 700; color: var(--color-accent-dark); letter-spacing: -0.3px; }
-  .header-left p { font-size: 13px; color: var(--color-text-secondary); margin-top: 3px; }
-  .btn-primary { background: var(--color-accent); color: var(--color-accent-text); border: none; padding: 9px 18px; border-radius: var(--radius-md); font-size: 14px; cursor: pointer; font-weight: 600; font-family: var(--font); transition: background 0.15s, transform 0.1s; box-shadow: 0 2px 8px rgba(232,121,154,0.3); }
-  .btn-primary:hover { background: var(--color-accent-dark); transform: translateY(-1px); }
-  .filters { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
-  .filters input, .filters select { padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 14px; background: var(--color-bg); color: var(--color-text-primary); font-family: var(--font); outline: none; transition: border-color 0.15s; }
-  .filters input { flex: 1; min-width: 160px; }
-  .filters input:focus, .filters select:focus { border-color: var(--color-accent); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
-  .card { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1rem 1.1rem; cursor: pointer; transition: border-color 0.15s, transform 0.12s, box-shadow 0.12s; }
-  .card:hover { border-color: var(--color-accent); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(232,121,154,0.15); }
-  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
-  .card-title { font-size: 15px; font-weight: 600; color: var(--color-text-primary); line-height: 1.35; }
-  .fav-btn { background: none; border: none; cursor: pointer; font-size: 17px; padding: 0; line-height: 1; flex-shrink: 0; color: #e8799a; transition: transform 0.1s; }
-  .fav-btn:hover { transform: scale(1.25); }
-  .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-  .badge-easy { background: #d9f5e2; color: #2d6e4a; }
-  .badge-medium { background: #fce8d0; color: #8a5020; }
-  .badge-hard { background: #fdd5df; color: #b03060; }
-  .badge-done { background: #d0f0ee; color: #1e6e68; }
-  .badge-wip { background: #dce8fd; color: #3060a8; }
-  .badge-todo { background: #ede8fd; color: #6050a0; }
-  .card-meta { font-size: 12px; color: var(--color-text-secondary); margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
-  .card-badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
-  .cat-tag { background: var(--color-cat-bg); color: var(--color-cat-text); font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 600; }
-  .empty { text-align: center; padding: 3rem 1rem; color: var(--color-text-secondary); font-size: 14px; grid-column: 1 / -1; }
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf8ff;--bg2:#f2eefe;--bg3:#e9e2fc;
+  --tx:#2a1f4a;--tx2:#7a6a9a;
+  --bd:rgba(130,90,200,0.18);--bd2:rgba(130,90,200,0.4);
+  --ac:#7c4dff;--acd:#5e35b1;--acl:#ede7ff;--act:#fff;
+  --r:14px;--rl:22px;--rxl:28px;
+  --font:'Nunito','Segoe UI',system-ui,sans-serif;
+}
+html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--bg);color:var(--tx)}
 
-  /* Modal */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(100,50,70,0.35); display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; z-index: 100; overflow-y: auto; }
-  .modal { background: var(--color-bg); border-radius: var(--radius-lg); border: 1px solid var(--color-border); padding: 1.5rem; width: 100%; max-width: 500px; animation: slideUp 0.18s ease; }
-  @keyframes slideUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
-  .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 1.25rem; color: var(--color-text-primary); }
-  .form-row { margin-bottom: 14px; }
-  .form-row label { font-size: 13px; color: var(--color-text-secondary); display: block; margin-bottom: 5px; font-weight: 600; }
-  .form-row input, .form-row select, .form-row textarea { width: 100%; padding: 8px 11px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 14px; background: var(--color-bg); color: var(--color-text-primary); font-family: var(--font); outline: none; transition: border-color 0.15s; }
-  .form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color: var(--color-accent); }
-  .form-row textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
-  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; align-items: center; }
-  .btn-sec { background: none; border: 1px solid var(--color-border); color: var(--color-text-secondary); padding: 8px 16px; border-radius: var(--radius-md); font-size: 14px; cursor: pointer; font-family: var(--font); transition: background 0.12s; }
-  .btn-sec:hover { background: var(--color-bg-secondary); }
-  .btn-del { background: none; border: 1px solid #fdd5df; color: #b03060; padding: 8px 16px; border-radius: var(--radius-md); font-size: 14px; cursor: pointer; margin-right: auto; font-family: var(--font); transition: background 0.12s; }
-  .btn-del:hover { background: #fde8f0; }
-  .pdf-drop { border: 2px dashed var(--color-border); border-radius: var(--radius-md); padding: 1.25rem; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: var(--color-bg-secondary); }
-  .pdf-drop:hover, .pdf-drop.drag-over { border-color: var(--color-accent); background: var(--color-accent-light); }
-  .pdf-drop p { font-size: 13px; color: var(--color-text-secondary); margin-top: 6px; }
-  .pdf-drop .pdf-icon { font-size: 28px; display: block; }
-  .pdf-attached { display: flex; align-items: center; gap: 10px; background: #fde8f0; border: 1px solid #f5bdd0; border-radius: var(--radius-md); padding: 10px 12px; }
-  .pdf-attached span { font-size: 13px; color: #b03060; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .pdf-remove { background: none; border: none; cursor: pointer; font-size: 16px; color: #b03060; padding: 0; line-height: 1; flex-shrink: 0; }
-  .card-pdf-badge { display: inline-flex; align-items: center; gap: 4px; background: #fde8f0; color: #b03060; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
-  .btn-view-pdf { background: #fde8f0; color: #b03060; border: 1px solid #f5bdd0; padding: 8px 14px; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: background 0.12s; display: flex; align-items: center; gap: 6px; }
-  .btn-view-pdf:hover { background: #fdd5df; }
-  .pdf-viewer-overlay { position: fixed; inset: 0; background: rgba(60,20,40,0.7); z-index: 200; display: flex; flex-direction: column; }
-  .pdf-viewer-bar { background: var(--color-bg); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--color-border); flex-shrink: 0; }
-  .pdf-viewer-bar span { font-size: 14px; font-weight: 600; color: var(--color-text-primary); }
-  .pdf-viewer-bar button { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--color-text-secondary); padding: 0 4px; font-family: var(--font); }
-  .pdf-viewer-bar button:hover { color: var(--color-text-primary); }
-  .pdf-iframe { flex: 1; width: 100%; border: none; }
+.shell{position:fixed;inset:0;display:flex;flex-direction:column}
+.screens{flex:1;position:relative;overflow:hidden}
+.screen{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:linear-gradient(160deg,#f0ebff 0%,#faf8ff 45%,#ece5ff 100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);will-change:transform}
+.screen.off-left{transform:translateX(-100%);pointer-events:none}
+.screen.off-right{transform:translateX(100%);pointer-events:none}
+.screen.on{transform:translateX(0)}
 
-  /* Step checklist */
-  .steps-list { display: flex; flex-direction: column; gap: 4px; }
-  .step-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px; border-radius: var(--radius-md); cursor: pointer; transition: background 0.15s, opacity 0.35s; border: 1px solid transparent; user-select: none; }
-  .step-row:hover { background: var(--color-bg-secondary); border-color: var(--color-border); }
-  .step-row.done { opacity: 0.38; }
-  .step-check { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--color-accent); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: background 0.2s, border-color 0.2s; }
-  .step-row.done .step-check { background: var(--color-accent); border-color: var(--color-accent); }
-  .step-check-tick { display: none; color: white; font-size: 11px; font-weight: 700; line-height: 1; }
-  .step-row.done .step-check-tick { display: block; }
-  .step-text { font-size: 14px; line-height: 1.6; color: var(--color-text-primary); transition: text-decoration 0.2s; }
-  .step-row.done .step-text { text-decoration: line-through; color: var(--color-text-secondary); }
-  .steps-progress { margin-bottom: 10px; }
-  .steps-progress-bar-bg { height: 6px; background: var(--color-border); border-radius: 99px; overflow: hidden; }
-  .steps-progress-bar { height: 100%; background: linear-gradient(90deg, #e8799a, #c97bb8); border-radius: 99px; transition: width 0.35s ease; }
-  .steps-progress-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 5px; display: flex; justify-content: space-between; }
-  .btn-reset-steps { background: none; border: none; font-size: 12px; color: var(--color-text-secondary); cursor: pointer; font-family: var(--font); padding: 0; text-decoration: underline; }
-  .btn-reset-steps:hover { color: var(--color-accent-dark); }
+/* Top bar */
+.top-bar{position:sticky;top:0;z-index:20;height:58px;
+  background:rgba(250,248,255,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--bd);padding:0 1.1rem;display:flex;align-items:center;gap:8px}
+.top-bar-title{font-size:19px;font-weight:800;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:linear-gradient(90deg,#7c4dff,#b06aff);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text}
+.btn-back{background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:2px;font-family:var(--font);padding:4px 2px}
+.btn-back .arrow{font-size:26px;line-height:1;font-weight:300;color:var(--ac);margin-top:-2px}
+.btn-back .lbl{font-size:15px;font-weight:700;color:var(--ac)}
+.top-bar-action{background:none;border:none;cursor:pointer;font-size:14px;font-weight:700;
+  color:var(--ac);font-family:var(--font);padding:6px 10px;border-radius:99px;transition:background .15s}
+.top-bar-action:hover{background:var(--acl)}
 
-  /* Read view */
-  .read-modal { background: var(--color-bg); border-radius: var(--radius-lg); border: 1px solid var(--color-border); width: 100%; max-width: 540px; animation: slideUp 0.18s ease; overflow: hidden; }
-  .read-hero { background: linear-gradient(135deg, #fde8f0, #ede8fd); padding: 1.5rem 1.5rem 1.25rem; position: relative; }
-  .read-hero-title { font-size: 20px; font-weight: 700; color: var(--color-accent-dark); line-height: 1.3; padding-right: 2.5rem; }
-  .read-hero-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-  .read-fav-btn { position: absolute; top: 1.25rem; right: 1.25rem; background: none; border: none; cursor: pointer; font-size: 22px; color: #e8799a; line-height: 1; padding: 0; transition: transform 0.1s; }
-  .read-fav-btn:hover { transform: scale(1.2); }
-  .read-body { padding: 1.25rem 1.5rem 0.5rem; }
-  .read-section { margin-bottom: 1.1rem; }
-  .read-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); margin-bottom: 6px; }
-  .read-chips { display: flex; gap: 8px; flex-wrap: wrap; }
-  .read-chip { display: flex; align-items: center; gap: 7px; background: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 7px 12px; font-size: 13px; color: var(--color-text-primary); font-weight: 500; }
-  .read-notes { background: var(--color-bg-secondary); border-radius: var(--radius-md); padding: 12px 14px; font-size: 14px; line-height: 1.7; color: var(--color-text-primary); white-space: pre-wrap; border-left: 3px solid var(--color-accent); }
-  .read-actions { display: flex; gap: 8px; padding: 1rem 1.5rem; border-top: 1px solid var(--color-border); align-items: center; }
-  .btn-edit { background: none; border: 1px solid var(--color-border); color: var(--color-text-secondary); padding: 8px 16px; border-radius: var(--radius-md); font-size: 14px; cursor: pointer; font-family: var(--font); transition: background 0.12s; }
-  .btn-edit:hover { background: var(--color-bg-secondary); color: var(--color-text-primary); }
+/* List */
+.list-pad{padding:1.1rem 1rem 2rem;max-width:860px;margin:0 auto}
+.list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:8px}
+.count-lbl{font-size:13px;color:var(--tx2);font-weight:600}
+.btn-add{background:linear-gradient(135deg,#7c4dff,#b06aff);color:#fff;border:none;
+  padding:10px 20px;border-radius:99px;font-size:14px;font-weight:700;font-family:var(--font);
+  cursor:pointer;box-shadow:0 4px 14px rgba(124,77,255,.35);transition:box-shadow .2s,transform .15s}
+.btn-add:hover{box-shadow:0 6px 20px rgba(124,77,255,.45);transform:translateY(-1px)}
+.btn-add:active{transform:scale(.97)}
+.filters{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.filters input,.filters select{padding:9px 18px;border:1.5px solid var(--bd);border-radius:99px;
+  font-size:14px;background:rgba(255,255,255,.7);color:var(--tx);font-family:var(--font);outline:none;
+  transition:border-color .15s,box-shadow .15s}
+.filters select{padding-right:38px;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a6a9a' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center}
+.filters input{flex:1;min-width:140px}
+.filters input:focus,.filters select:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(124,77,255,.12)}
+
+/* Cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.card{background:rgba(255,255,255,.75);backdrop-filter:blur(8px);
+  border:1.5px solid rgba(124,77,255,.12);border-radius:var(--rxl);cursor:pointer;
+  transition:border-color .2s,transform .15s,box-shadow .2s;
+  box-shadow:0 2px 12px rgba(124,77,255,.07);overflow:hidden}
+.card:hover{border-color:rgba(124,77,255,.35);transform:translateY(-3px);box-shadow:0 8px 28px rgba(124,77,255,.15)}
+.card:active{transform:scale(.97)}
+.card-photo{width:100%;height:120px;object-fit:cover;display:block}
+.card-photo-placeholder{width:100%;height:80px;background:linear-gradient(135deg,#ede7ff,#ddd0ff);
+  display:flex;align-items:center;justify-content:center;font-size:28px}
+.card-body{padding:1rem}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+.card-title{font-size:15px;font-weight:700;color:var(--tx);line-height:1.35}
+.fav-btn{background:none;border:none;cursor:pointer;font-size:18px;padding:0;color:#b06aff;flex-shrink:0;transition:transform .15s}
+.fav-btn:hover{transform:scale(1.25)}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.badge-easy{background:#d9f5e2;color:#2d6e4a}
+.badge-medium{background:#fff0d4;color:#7a4f00}
+.badge-hard{background:#fde0f0;color:#9b1d5a}
+.card-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
+.cat-tag{background:linear-gradient(135deg,#ede7ff,#e0d4ff);color:var(--acd);font-size:11px;padding:3px 10px;border-radius:99px;font-weight:700}
+.pdf-badge{background:linear-gradient(135deg,#fce4f6,#f0d4ff);color:#8b1a8b;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px}
+.card-meta{font-size:12px;color:var(--tx2);margin-top:9px;display:flex;flex-direction:column;gap:3px;font-weight:500}
+.empty{text-align:center;padding:3rem 1rem;color:var(--tx2);font-size:14px;grid-column:1/-1}
+
+/* Project status pills */
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700}
+.status-active{background:linear-gradient(135deg,#ede7ff,#ddd0ff);color:var(--acd)}
+.status-done-proj{background:#d8f0ff;color:#0d5a8a}
+.status-frogged{background:#fff0d4;color:#7a4f00}
+
+/* Project card extras */
+.proj-pattern-link{font-size:12px;color:var(--ac);font-weight:700;margin-top:6px}
+.proj-progress-mini{margin-top:8px}
+.proj-progress-mini-bg{height:5px;background:var(--bg3);border-radius:99px;overflow:hidden}
+.proj-progress-mini-bar{height:100%;background:linear-gradient(90deg,#7c4dff,#b06aff);border-radius:99px;transition:width .4s}
+
+/* Detail hero */
+.detail-fav{background:none;border:none;cursor:pointer;font-size:24px;color:#b06aff;padding:2px}
+.detail-photo-wrap{position:relative;width:100%;max-height:240px;overflow:hidden}
+.detail-photo-wrap img{width:100%;object-fit:cover;display:block}
+.detail-hero{padding:1.5rem 1.25rem 1.25rem;
+  background:linear-gradient(145deg,#7c4dff 0%,#b06aff 60%,#d4a8ff 100%);
+  position:relative;overflow:hidden}
+.detail-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;
+  border-radius:50%;background:rgba(255,255,255,.1);pointer-events:none}
+.detail-hero::after{content:'';position:absolute;bottom:-30px;left:-20px;width:120px;height:120px;
+  border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none}
+.detail-hero-title{font-size:22px;font-weight:800;color:#fff;line-height:1.3;position:relative}
+.detail-hero-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;position:relative}
+.detail-hero-badges .badge,.detail-hero-badges .cat-tag,.detail-hero-badges .pdf-badge,
+.detail-hero-badges .status-pill{background:rgba(255,255,255,.2);color:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.25)}
+.detail-body{padding:1.25rem 1.25rem 0;max-width:640px;margin:0 auto}
+.section{margin-bottom:1.4rem}
+.section-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--tx2);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.8);
+  border:1.5px solid var(--bd);border-radius:99px;padding:9px 16px;
+  font-size:14px;color:var(--tx);font-weight:600;box-shadow:0 1px 6px rgba(124,77,255,.06)}
+.pattern-ref-card{background:rgba(255,255,255,.8);border:1.5px solid var(--bd);border-radius:var(--rl);
+  padding:1rem;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .15s}
+.pattern-ref-card:hover{border-color:rgba(124,77,255,.4)}
+.pattern-ref-icon{width:40px;height:40px;border-radius:var(--r);
+  background:linear-gradient(135deg,#7c4dff,#b06aff);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.pattern-ref-name{font-size:14px;font-weight:700;color:var(--tx)}
+.pattern-ref-meta{font-size:12px;color:var(--tx2);margin-top:2px;font-weight:500}
+.detail-bar{display:flex;gap:10px;padding:.85rem 1.25rem;border-top:1px solid var(--bd);
+  position:sticky;bottom:0;background:rgba(250,248,255,.92);backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);max-width:640px;margin:0 auto;align-items:center}
+.btn-edit-full{background:none;border:none;color:var(--tx2);padding:8px 12px;border-radius:99px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.btn-edit-full:hover{color:var(--tx);background:var(--bg2)}
+.btn-pdf-open{background:linear-gradient(135deg,#f3e0ff,#e8d4ff);color:var(--acd);
+  border:1.5px solid rgba(124,77,255,.2);padding:10px 18px;border-radius:99px;
+  font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.btn-pdf-open:hover{background:linear-gradient(135deg,#ead4ff,#dcc8ff)}
+
+/* Photo upload in detail */
+.photo-upload-zone{border:2px dashed var(--bd2);border-radius:var(--rl);padding:1.5rem;
+  text-align:center;cursor:pointer;background:var(--bg2);transition:border-color .15s,background .15s}
+.photo-upload-zone:hover{border-color:var(--ac);background:var(--acl)}
+.photo-upload-zone p{font-size:13px;color:var(--tx2);margin-top:6px;font-weight:600}
+.photo-preview{width:100%;border-radius:var(--rl);object-fit:cover;max-height:260px;display:block}
+.btn-remove-photo{background:none;border:1.5px solid var(--bd);color:var(--tx2);padding:6px 14px;
+  border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:8px}
+.btn-remove-photo:hover{background:var(--bg2)}
+
+/* Steps */
+.steps-list{display:flex;flex-direction:column;gap:5px}
+.step-row{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border-radius:var(--rl);
+  cursor:pointer;border:1.5px solid transparent;user-select:none;transition:background .15s,opacity .35s;
+  background:rgba(255,255,255,.55)}
+.step-row:hover{background:rgba(255,255,255,.85);border-color:var(--bd)}
+.step-row.done{opacity:.38}
+.step-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--ac);flex-shrink:0;margin-top:2px;
+  display:flex;align-items:center;justify-content:center;transition:background .2s,border-color .2s}
+.step-row.done .step-check{background:linear-gradient(135deg,#7c4dff,#b06aff);border-color:transparent}
+.step-tick{display:none;color:#fff;font-size:12px;font-weight:800}
+.step-row.done .step-tick{display:block}
+.step-text{font-size:15px;line-height:1.6;color:var(--tx);font-weight:500}
+.step-row.done .step-text{text-decoration:line-through;color:var(--tx2)}
+.progress-wrap{margin-bottom:12px}
+.progress-meta{font-size:12px;color:var(--tx2);margin-bottom:6px;display:flex;justify-content:space-between;font-weight:600}
+.progress-bg{height:8px;background:var(--bg3);border-radius:99px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,#7c4dff,#b06aff,#d4a8ff);border-radius:99px;transition:width .4s ease}
+.btn-reset{background:none;border:none;font-size:12px;color:var(--tx2);cursor:pointer;font-family:var(--font);text-decoration:underline;font-weight:600}
+
+/* Pattern picker in modal */
+.picker-list{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;margin-bottom:.5rem}
+.picker-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--rl);
+  background:rgba(255,255,255,.7);border:1.5px solid var(--bd);cursor:pointer;transition:border-color .15s,background .15s}
+.picker-item:hover,.picker-item.selected{border-color:var(--ac);background:var(--acl)}
+.picker-item-icon{width:36px;height:36px;border-radius:var(--r);background:linear-gradient(135deg,#7c4dff,#b06aff);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.picker-item-name{font-size:14px;font-weight:700;color:var(--tx)}
+.picker-item-meta{font-size:12px;color:var(--tx2);font-weight:500}
+.picker-none{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--rl);
+  background:rgba(255,255,255,.5);border:1.5px dashed var(--bd);cursor:pointer;transition:border-color .15s}
+.picker-none:hover,.picker-none.selected{border-color:var(--ac);background:var(--acl)}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(42,31,74,.45);z-index:200;display:flex;align-items:flex-end}
+@media(min-height:580px){.modal-bg{align-items:center;justify-content:center;padding:1rem}}
+.modal{background:var(--bg);border-radius:var(--rxl) var(--rxl) 0 0;width:100%;max-width:520px;max-height:94vh;overflow-y:auto;padding:1.75rem;animation:su .22s ease}
+@media(min-height:580px){.modal{border-radius:var(--rxl)}}
+@keyframes su{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.modal h2{font-size:20px;font-weight:800;margin-bottom:1.4rem;background:linear-gradient(90deg,#7c4dff,#b06aff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.form-row{margin-bottom:16px}
+.form-row label{font-size:13px;color:var(--tx2);display:block;margin-bottom:6px;font-weight:700}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:11px 14px;border:1.5px solid var(--bd);border-radius:var(--r);font-size:15px;background:rgba(255,255,255,.8);color:var(--tx);font-family:var(--font);outline:none;transition:border-color .15s,box-shadow .15s}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(124,77,255,.12)}
+.form-row textarea{resize:vertical;min-height:90px;line-height:1.5}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.modal-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:1.4rem;align-items:center}
+.btn-sec{background:none;border:1.5px solid var(--bd);color:var(--tx2);padding:10px 18px;border-radius:99px;font-size:14px;cursor:pointer;font-family:var(--font);font-weight:600}
+.btn-sec:hover{background:var(--bg2)}
+.btn-del{background:none;border:1.5px solid #d8b4f0;color:#5e35b1;padding:10px 18px;border-radius:99px;font-size:14px;cursor:pointer;margin-right:auto;font-family:var(--font);font-weight:600}
+.btn-del:hover{background:var(--acl)}
+.pdf-drop{border:2px dashed var(--bd2);border-radius:var(--rl);padding:1.4rem;text-align:center;cursor:pointer;background:var(--bg2);transition:border-color .15s,background .15s}
+.pdf-drop:hover,.pdf-drop.drag-over{border-color:var(--ac);background:var(--acl)}
+.pdf-drop p{font-size:13px;color:var(--tx2);margin-top:6px;font-weight:600}
+.pdf-drop .pdf-icon{font-size:30px;display:block}
+.pdf-attached{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#f3e0ff,#e8d4ff);border:1.5px solid rgba(124,77,255,.2);border-radius:var(--r);padding:10px 14px}
+.pdf-attached span{font-size:13px;color:var(--acd);font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pdf-remove{background:none;border:none;cursor:pointer;font-size:16px;color:var(--acd);padding:0;line-height:1;flex-shrink:0}
+.pdf-viewer{position:fixed;inset:0;background:rgba(42,31,74,.75);z-index:300;display:flex;flex-direction:column}
+.pdf-bar{background:var(--bg);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd);flex-shrink:0}
+.pdf-bar span{font-size:14px;font-weight:700;color:var(--tx)}
+.pdf-bar button{background:none;border:none;font-size:22px;cursor:pointer;color:var(--tx2);font-family:var(--font);padding:0 4px}
+.pdf-iframe{flex:1;width:100%;border:none}
+
+/* Bottom tab bar */
+.tab-bar { flex-shrink: 0; height: 64px; background: rgba(250,248,255,.96);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--bd); display: flex; align-items: stretch; padding: 0 8px;
+  padding-bottom: env(safe-area-inset-bottom); }
+.tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; background: none; border: none; cursor: pointer;
+  font-family: var(--font); color: var(--tx2); transition: color .15s; padding: 6px 0;
+  border-radius: var(--r); position: relative; }
+.tab-btn.active { color: var(--ac); }
+.tab-btn .t-icon { font-size: 22px; line-height: 1; }
+.tab-btn .t-lbl { font-size: 10px; font-weight: 800; letter-spacing: .02em; }
+.tab-btn.active::after { content: ''; position: absolute; bottom: 6px; left: 50%;
+  transform: translateX(-50%); width: 20px; height: 3px;
+  background: linear-gradient(90deg, #7c4dff, #b06aff); border-radius: 99px; }
+.tab-bar-hidden { display: none; }
+
+/* Collapsible info strip */
+.info-strip { background: rgba(255,255,255,.6); border: 1.5px solid var(--bd); border-radius: var(--rl);
+  overflow: hidden; margin-bottom: 1.2rem; }
+.info-strip-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  cursor: pointer; user-select: none; }
+.info-strip-header:active { background: rgba(124,77,255,.05); }
+.info-strip-icon { font-size: 14px; flex-shrink: 0; }
+.info-strip-summary { flex: 1; font-size: 12px; color: var(--tx2); font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.info-strip-chevron { font-size: 14px; color: var(--tx2); transition: transform .2s; flex-shrink: 0; }
+.info-strip-chevron.open { transform: rotate(90deg); }
+.info-strip-body { border-top: 1px solid var(--bd); padding: 12px 14px;
+  display: none; flex-direction: column; gap: 10px; }
+.info-strip-body.open { display: flex; }
+.info-row { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.info-row-label { color: var(--tx2); font-weight: 700; font-size: 11px; min-width: 60px; }
+.info-row-val { color: var(--tx); font-weight: 600; }
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="header">
-    <div class="header-left">
-      <h1>🧶 My crochet patterns</h1>
-      <p id="count-label">0 patterns saved</p>
-    </div>
-    <button class="btn-primary" onclick="openNew()">+ Add pattern</button>
-  </div>
-  <div class="filters">
-    <input type="text" id="search" placeholder="Search patterns…" oninput="render()" />
-    <select id="filter-cat" onchange="render()">
-      <option value="">All categories</option>
-      <option>Amigurumi</option><option>Blanket</option><option>Hat</option>
-      <option>Shawl</option><option>Bag</option><option>Clothing</option>
-      <option>Home decor</option><option>Other</option>
-    </select>
-    <select id="filter-status" onchange="render()">
-      <option value="">All statuses</option>
-      <option>To do</option><option>In progress</option><option>Done</option>
-    </select>
-    <select id="filter-fav" onchange="render()">
-      <option value="">All</option>
-      <option value="1">Favourites only</option>
-    </select>
-  </div>
-  <div class="grid" id="grid"></div>
-</div>
+<div class="shell">
+  <div class="screens">
 
+    <!-- Screen: Projects list -->
+    <div class="screen on" id="s-projects">
+      <div class="top-bar">
+        <div class="top-bar-title">🧶 My projects</div>
+        <button class="btn-add" onclick="openNewProject()">+ New</button>
+      </div>
+      <div class="list-pad">
+        <div class="list-header">
+          <span class="count-lbl" id="proj-count-lbl">0 projects</span>
+        </div>
+        <div class="filters">
+          <input type="text" id="proj-search" placeholder="Search…" oninput="renderProjects()"/>
+          <select id="proj-status-filter" onchange="renderProjects()">
+            <option value="">All statuses</option>
+            <option>Active</option><option>Done</option><option>Frogged</option>
+          </select>
+        </div>
+        <div class="grid" id="proj-grid"></div>
+      </div>
+    </div>
+
+    <!-- Screen: Pattern library -->
+    <div class="screen off-right" id="s-library">
+      <div class="top-bar">
+        <div class="top-bar-title">📚 Pattern library</div>
+        <button class="btn-add" onclick="openNewPattern()">+ Add</button>
+      </div>
+      <div class="list-pad">
+        <div class="list-header">
+          <span class="count-lbl" id="lib-count-lbl">0 patterns</span>
+        </div>
+        <div class="filters">
+          <input type="text" id="lib-search" placeholder="Search…" oninput="renderLibrary()"/>
+          <select id="lib-cat-filter" onchange="renderLibrary()">
+            <option value="">All categories</option>
+            <option>Amigurumi</option><option>Blanket</option><option>Hat</option>
+            <option>Shawl</option><option>Bag</option><option>Clothing</option>
+            <option>Home decor</option><option>Other</option>
+          </select>
+        </div>
+        <div class="grid" id="lib-grid"></div>
+      </div>
+    </div>
+
+    <!-- Screen: Detail (project or pattern) -->
+    <div class="screen off-right" id="s-detail">
+      <div class="top-bar">
+        <button class="btn-back" onclick="goBack()">
+          <span class="arrow">‹</span><span class="lbl" id="back-lbl">Back</span>
+        </button>
+        <div style="flex:1"></div>
+        <button class="btn-edit-full" id="d-edit-btn" style="display:none" onclick="triggerDetailEdit()">✏️ Edit</button>
+      </div>
+      <div id="d-content"></div>
+    </div>
+
+  </div>
+  <!-- Bottom tab bar - hidden on detail screen -->
+  <div class="tab-bar" id="main-tab-bar">
+    <button class="tab-btn active" id="tab-projects" onclick="switchTab('projects')">
+      <span class="t-icon">🪡</span><span class="t-lbl">Projects</span>
+    </button>
+    <button class="tab-btn" id="tab-library" onclick="switchTab('library')">
+      <span class="t-icon">📚</span><span class="t-lbl">Library</span>
+    </button>
+  </div>
+</div>
 <div id="modal-area"></div>
 
 <script>
-let patterns = JSON.parse(localStorage.getItem('crochet_patterns_v2') || 'null') || [
-  {id:1,name:'Sunflower granny square blanket',category:'Blanket',difficulty:'Easy',status:'Done',yarn:'Paintbox Simply DK – Yellow, Green',hook:'4.0mm',notes:'Make 48 squares, 6×8 grid. Join with slip stitch in cream.',fav:true},
-  {id:2,name:'Mushroom amigurumi',category:'Amigurumi',difficulty:'Medium',status:'In progress',yarn:'Scheepjes Catona – Red, White',hook:'2.5mm',notes:'Stuff firmly. Leave 3cm tail for sewing.',fav:false},
-  {id:3,name:'Chunky ribbed beanie',category:'Hat',difficulty:'Easy',status:'To do',yarn:'Drops Eskimo – Mustard',hook:'7.0mm',notes:'Work in the round, BLO for ribbing effect.',fav:true}
+// ── Data ──────────────────────────────────────────────────────────
+let patterns = JSON.parse(localStorage.getItem('crochet_patterns_v2')||'null') || [
+  {id:1,name:'Sunflower granny square blanket',category:'Blanket',difficulty:'Easy',yarn:'Paintbox Simply DK – Yellow, Green',hook:'4.0mm',notes:'Make 48 squares, 6×8 grid.\nJoin with slip stitch in cream.\nWeave in all ends.',fav:true,pdfName:null},
+  {id:2,name:'Mushroom amigurumi',category:'Amigurumi',difficulty:'Medium',yarn:'Scheepjes Catona – Red, White',hook:'2.5mm',notes:'Start with magic ring, 6 sc.\nIncrease to 12, then 18.\nStuff firmly before closing.',fav:false,pdfName:null},
+  {id:3,name:'Chunky ribbed beanie',category:'Hat',difficulty:'Easy',yarn:'Drops Eskimo – Mustard',hook:'7.0mm',notes:'Work in the round, BLO for ribbing.\nRepeat until 22cm tall.',fav:true,pdfName:null}
 ];
-let nextId = Math.max(...patterns.map(p=>p.id), 3) + 1;
+let projects = JSON.parse(localStorage.getItem('crochet_projects_v1')||'null') || [
+  {id:101,name:'Granny square blanket for Mum',patternId:1,status:'Active',yarn:'Paintbox Simply DK – Cream',hook:'4.0mm',startDate:'2025-10-01',notes:'Making it extra large — 8×10 grid.',fav:false,photoKey:null},
+  {id:102,name:'Mushroom keychain',patternId:2,status:'Done',yarn:'Scheepjes Catona – Coral',hook:'2.0mm',startDate:'2025-09-15',endDate:'2025-09-20',notes:'Gift for sister.',fav:true,photoKey:null}
+];
+let nextPatId  = Math.max(...patterns.map(p=>p.id),3)+1;
+let nextProjId = Math.max(...projects.map(p=>p.id),102)+1;
+let currentDetailId   = null;
+let currentDetailType = null; // 'project' | 'pattern'
+let detailFrom = 'projects'; // 'projects' | 'library'
 
-function save() { localStorage.setItem('crochet_patterns_v2', JSON.stringify(patterns)); }
+function savePatterns(){ localStorage.setItem('crochet_patterns_v2',JSON.stringify(patterns)); }
+function saveProjects(){ localStorage.setItem('crochet_projects_v1',JSON.stringify(projects)); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function diffBadge(d){ const c=d==='Easy'?'easy':d==='Medium'?'medium':'hard'; return `<span class="badge badge-${c}">${d}</span>`; }
 
-function diffBadge(d) {
-  const cls = d==='Easy'?'easy':d==='Medium'?'medium':'hard';
-  return `<span class="badge badge-${cls}">${d}</span>`;
+// ── Navigation ────────────────────────────────────────────────────
+let activeTab = 'projects';
+
+function switchTab(tab){
+  if(activeTab===tab) return;
+  const goRight = tab==='library';
+  document.getElementById('s-'+activeTab).classList.replace('on', goRight?'off-left':'off-right');
+  document.getElementById('s-'+tab).classList.replace(goRight?'off-right':'off-left','on');
+  document.getElementById('tab-'+activeTab).classList.remove('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  activeTab=tab;
+  if(tab==='library') renderLibrary(); else renderProjects();
 }
-function statusBadge(s) {
-  const cls = s==='Done'?'done':s==='In progress'?'wip':'todo';
-  return `<span class="badge badge-${cls}">${s}</span>`;
-}
+function goToLibrary(){ switchTab('library'); }
+function goBackToProjects(){ switchTab('projects'); }
 
-function filtered() {
-  const q = document.getElementById('search').value.toLowerCase();
-  const cat = document.getElementById('filter-cat').value;
-  const st = document.getElementById('filter-status').value;
-  const fav = document.getElementById('filter-fav').value;
-  return patterns.filter(p =>
-    (!q || p.name.toLowerCase().includes(q) || (p.notes||'').toLowerCase().includes(q) || (p.yarn||'').toLowerCase().includes(q)) &&
-    (!cat || p.category===cat) &&
-    (!st || p.status===st) &&
-    (!fav || p.fav)
-  );
-}
-
-function render() {
-  const list = filtered();
-  document.getElementById('count-label').textContent = `${patterns.length} pattern${patterns.length!==1?'s':''} saved`;
-  const grid = document.getElementById('grid');
-  if (!list.length) {
-    grid.innerHTML = '<div class="empty">No patterns found. Try adjusting your filters or add a new pattern.</div>';
-    return;
+function goToDetail(type, id, from){
+  currentDetailType=type; currentDetailId=id; detailFrom=from||activeTab;
+  document.getElementById('back-lbl').textContent = detailFrom==='library'?'Library':'Projects';
+  const eb=document.getElementById('d-edit-btn');
+  if(eb) eb.style.display='block';
+  if(type==='project'){
+    const p=projects.find(x=>x.id===id);
+    renderProjectDetail(p);
+  } else {
+    const p=patterns.find(x=>x.id===id);
+    renderPatternDetail(p);
   }
-  grid.innerHTML = list.map(p => `
-    <div class="card" onclick="openReadView(${p.id})">
-      <div class="card-top">
-        <div class="card-title">${esc(p.name)}</div>
-        <button class="fav-btn" onclick="event.stopPropagation();toggleFav(${p.id})" title="Toggle favourite">${p.fav?'★':'☆'}</button>
-      </div>
-      <div class="card-badges">
-        ${p.category?`<span class="cat-tag">${esc(p.category)}</span>`:''}
-        ${p.difficulty?diffBadge(p.difficulty):''}
-        ${p.status?statusBadge(p.status):''}
-        ${p.pdfName?`<span class="card-pdf-badge">📄 PDF</span>`:''}
-      </div>
-      <div class="card-meta">
-        ${p.yarn?`<span>🧶 ${esc(p.yarn)}</span>`:''}
-        ${p.hook?`<span>🪝 Hook ${esc(p.hook)}</span>`:''}
-      </div>
-    </div>`).join('');
+  document.getElementById('s-detail').scrollTop=0;
+  document.getElementById('s-'+detailFrom).classList.replace('on','off-left');
+  document.getElementById('s-detail').classList.replace('off-right','on');
+  document.getElementById('main-tab-bar').style.display='none';
+}
+function goBack(){
+  document.getElementById('s-detail').classList.replace('on','off-right');
+  document.getElementById('s-'+detailFrom).classList.replace('off-left','on');
+  const eb=document.getElementById('d-edit-btn');
+  if(eb) eb.style.display='none';
+  currentDetailId=null; currentDetailType=null;
+  document.getElementById('main-tab-bar').style.display='';
+  document.getElementById('tab-projects').classList.toggle('active', detailFrom==='projects');
+  document.getElementById('tab-library').classList.toggle('active', detailFrom==='library');
+  activeTab=detailFrom;
+}
+function toggleFavDetail(){
+  if(currentDetailType==='project'){
+    const p=projects.find(x=>x.id===currentDetailId);if(!p)return;
+    p.fav=!p.fav; saveProjects();
+    const hb=document.getElementById('hero-fav-btn');
+    if(hb)hb.textContent=p.fav?'★':'☆';
+  } else {
+    const p=patterns.find(x=>x.id===currentDetailId);if(!p)return;
+    p.fav=!p.fav; savePatterns();
+    const hb=document.getElementById('hero-fav-btn');
+    if(hb)hb.textContent=p.fav?'★':'☆';
+  }
+}
+function triggerDetailEdit(){
+  if(currentDetailType==='project') openEditProject(currentDetailId);
+  else openEditPattern(currentDetailId);
 }
 
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function toggleFav(id) {
-  const p = patterns.find(x=>x.id===id);
-  if (p) { p.fav = !p.fav; save(); render(); }
-}
-
-function closeModal() { document.getElementById('modal-area').innerHTML = ''; }
-
-function openNew() {
-  document.getElementById('modal-area').innerHTML = modalHTML(null);
-}
-
-function openReadView(id) {
-  const p = patterns.find(x=>x.id===id);
-  if (!p) return;
-  document.getElementById('modal-area').innerHTML = readViewHTML(p);
-}
-
-function openEdit(id) {
-  const p = patterns.find(x=>x.id===id);
-  if (p) document.getElementById('modal-area').innerHTML = modalHTML(p);
-}
-
-function openDetail(id) { openEdit(id); }
-
-function getStepsDone(id) {
-  try { return JSON.parse(localStorage.getItem('crochet_steps_' + id) || '[]'); } catch { return []; }
-}
-function saveStepsDone(id, done) {
-  localStorage.setItem('crochet_steps_' + id, JSON.stringify(done));
-}
-function toggleStep(id, idx) {
-  const done = getStepsDone(id);
-  const pos = done.indexOf(idx);
-  if (pos === -1) done.push(idx); else done.splice(pos, 1);
-  saveStepsDone(id, done);
-  refreshSteps(id);
-}
-function resetSteps(id) {
-  saveStepsDone(id, []);
-  refreshSteps(id);
-}
-function refreshSteps(id) {
-  const p = patterns.find(x=>x.id===id);
-  if (!p) return;
-  const lines = (p.notes||'').split('\n').filter(l=>l.trim());
-  const done = getStepsDone(id);
-  const total = lines.length;
-  const doneCount = done.length;
-  const pct = total ? Math.round(doneCount / total * 100) : 0;
-  const bar = document.getElementById('steps-bar-' + id);
-  const lbl = document.getElementById('steps-lbl-' + id);
-  if (bar) bar.style.width = pct + '%';
-  if (lbl) lbl.textContent = `${doneCount} of ${total} steps done`;
-  lines.forEach((_, i) => {
-    const row = document.getElementById('step-row-' + id + '-' + i);
-    if (!row) return;
-    if (done.includes(i)) row.classList.add('done');
-    else row.classList.remove('done');
-  });
-}
-
-function readViewHTML(p) {
-  const hasPdf = !!p.pdfName;
-  const lines = (p.notes||'').split('\n').filter(l=>l.trim());
-  const hasSteps = lines.length > 0;
-  const done = getStepsDone(p.id);
-  const total = lines.length;
-  const doneCount = done.filter(i=>i<total).length;
-  const pct = total ? Math.round(doneCount / total * 100) : 0;
-
-  const stepsHTML = hasSteps ? `
-    <div class="read-section">
-      <div class="read-section-label" style="display:flex;justify-content:space-between;align-items:center">
-        <span>Steps &amp; notes</span>
-        <button class="btn-reset-steps" onclick="resetSteps(${p.id})">Reset all</button>
-      </div>
-      <div class="steps-progress">
-        <div class="steps-progress-label">
-          <span id="steps-lbl-${p.id}">${doneCount} of ${total} steps done</span>
-          <span>${pct}%</span>
+// ── Projects list ─────────────────────────────────────────────────
+function renderProjects(){
+  const q=document.getElementById('proj-search').value.toLowerCase();
+  const st=document.getElementById('proj-status-filter').value;
+  const list=projects.filter(p=>
+    (!q||p.name.toLowerCase().includes(q)||(p.notes||'').toLowerCase().includes(q))&&
+    (!st||p.status===st));
+  document.getElementById('proj-count-lbl').textContent=
+    `${projects.length} project${projects.length!==1?'s':''}`;
+  const grid=document.getElementById('proj-grid');
+  if(!list.length){grid.innerHTML='<div class="empty">No projects yet — tap + New to start one!</div>';return;}
+  grid.innerHTML=list.map(p=>{
+    const pat=patterns.find(x=>x.id===p.patternId);
+    const steps=pat?(pat.notes||'').split('\n').filter(l=>l.trim()):
+      (p.steps||[]);
+    const done=getProjStepsDone(p.id);
+    const pct=steps.length?Math.round(done.filter(i=>i<steps.length).length/steps.length*100):0;
+    const statusCls=p.status==='Active'?'status-active':p.status==='Done'?'status-done-proj':'status-frogged';
+    const photo=p.photoKey?localStorage.getItem(p.photoKey):null;
+    return `<div class="card" onclick="goToDetail('project',${p.id},'projects')">
+      ${photo?`<img class="card-photo" src="${photo}" alt=""/>`
+              :`<div class="card-photo-placeholder">🪡</div>`}
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-title">${esc(p.name)}</div>
+          <button class="fav-btn" onclick="event.stopPropagation();toggleFavProj(${p.id})">${p.fav?'★':'☆'}</button>
         </div>
-        <div class="steps-progress-bar-bg">
-          <div class="steps-progress-bar" id="steps-bar-${p.id}" style="width:${pct}%"></div>
+        <div class="card-badges"><span class="status-pill ${statusCls}">${p.status}</span></div>
+        ${pat?`<div class="proj-pattern-link">📄 ${esc(pat.name)}</div>`
+             :'<div class="proj-pattern-link" style="color:var(--tx2)">✦ Freestyle</div>'}
+        ${steps.length?`<div class="proj-progress-mini">
+          <div class="proj-progress-mini-bg">
+            <div class="proj-progress-mini-bar" style="width:${pct}%"></div>
+          </div></div>`:''}
+        <div class="card-meta">
+          ${p.yarn?`<span>🧶 ${esc(p.yarn)}</span>`:''}
+          ${p.startDate?`<span>📅 Started ${p.startDate}</span>`:''}
         </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleFavProj(id){
+  const p=projects.find(x=>x.id===id);if(p){p.fav=!p.fav;saveProjects();renderProjects();}
+}
+
+// ── Project detail ────────────────────────────────────────────────
+function renderProjectDetail(p){
+  const pat=patterns.find(x=>x.id===p.patternId);
+  const lines=pat?(pat.notes||'').split('\n').filter(l=>l.trim()):(p.steps||[]);
+  const hasSteps=lines.length>0;
+  const done=getProjStepsDone(p.id);
+  const total=lines.length;
+  const doneCount=done.filter(i=>i<total).length;
+  const pct=total?Math.round(doneCount/total*100):0;
+  const photo=p.photoKey?localStorage.getItem(p.photoKey):null;
+  const isDone=p.status==='Done';
+
+  // Build summary line for the collapsed info strip
+  const summaryParts=[];
+  if(pat) summaryParts.push('📄 '+pat.name);
+  if(p.yarn) summaryParts.push('🧶 '+p.yarn);
+  if(p.hook) summaryParts.push('🪝 '+p.hook);
+  if(p.startDate) summaryParts.push('📅 '+p.startDate);
+  const stripSummary=summaryParts.join('  ·  ') || 'No details';
+
+  const infoStripRows=[];
+  if(pat) infoStripRows.push(`<div class="info-row">
+    <span class="info-row-label">Pattern</span>
+    <span class="info-row-val" style="color:var(--ac);cursor:pointer" onclick="goToDetail('pattern',${pat.id},'projects')">
+      ${esc(pat.name)} ›
+    </span>
+  </div>`);
+  if(p.yarn) infoStripRows.push(`<div class="info-row"><span class="info-row-label">Yarn</span><span class="info-row-val">${esc(p.yarn)}</span></div>`);
+  if(p.hook) infoStripRows.push(`<div class="info-row"><span class="info-row-label">Hook</span><span class="info-row-val">${esc(p.hook)}</span></div>`);
+  if(p.startDate) infoStripRows.push(`<div class="info-row"><span class="info-row-label">Started</span><span class="info-row-val">${p.startDate}</span></div>`);
+  if(p.endDate) infoStripRows.push(`<div class="info-row"><span class="info-row-label">Finished</span><span class="info-row-val">${p.endDate}</span></div>`);
+
+  const infoStrip=infoStripRows.length?`
+    <div class="info-strip" style="margin-bottom:1.2rem">
+      <div class="info-strip-header" onclick="toggleInfoStrip(this)">
+        <span class="info-strip-icon">ℹ️</span>
+        <span class="info-strip-summary">${stripSummary}</span>
+        <span class="info-strip-chevron">›</span>
+      </div>
+      <div class="info-strip-body">
+        ${infoStripRows.join('')}
+      </div>
+    </div>`:'' ;
+
+  const stepsHTML=hasSteps?`
+    <div class="section">
+      <div class="section-lbl">
+        <span>Steps</span>
+        <button class="btn-reset" onclick="resetProjSteps(${p.id})">Reset all</button>
+      </div>
+      ${pat?`<div style="font-size:12px;color:var(--tx2);font-weight:600;margin:-4px 0 10px;display:flex;align-items:center;gap:5px">
+        <span style="opacity:.6">📄</span> Inherited from <em style="color:var(--ac);font-style:normal">${esc(pat.name)}</em>
+      </div>`:''}
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="steps-lbl-${p.id}">${doneCount} of ${total} done</span>
+          <span id="steps-pct-${p.id}">${pct}%</span>
+        </div>
+        <div class="progress-bg"><div class="progress-bar" id="steps-bar-${p.id}" style="width:${pct}%"></div></div>
       </div>
       <div class="steps-list">
-        ${lines.map((line, i) => `
-          <div class="step-row${done.includes(i)?' done':''}" id="step-row-${p.id}-${i}" onclick="toggleStep(${p.id},${i})">
-            <div class="step-check"><span class="step-check-tick">✓</span></div>
+        ${lines.map((line,i)=>`
+          <div class="step-row${done.includes(i)?' done':''}" id="pstep-${p.id}-${i}" onclick="toggleProjStep(${p.id},${i})">
+            <div class="step-check"><span class="step-tick">✓</span></div>
             <div class="step-text">${esc(line)}</div>
           </div>`).join('')}
       </div>
-    </div>` : '';
+    </div>`:'';
 
-  return `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-  <div class="read-modal">
-    <div class="read-hero">
-      <div class="read-hero-title">${esc(p.name)}</div>
-      <button class="read-fav-btn" onclick="toggleFav(${p.id});openReadView(${p.id})" title="Toggle favourite">${p.fav?'★':'☆'}</button>
-      <div class="read-hero-badges">
-        ${p.category?`<span class="cat-tag">${esc(p.category)}</span>`:''}
-        ${p.difficulty?diffBadge(p.difficulty):''}
-        ${p.status?statusBadge(p.status):''}
-        ${hasPdf?`<span class="card-pdf-badge">📄 PDF</span>`:''}
-      </div>
-    </div>
-    <div class="read-body">
-      ${(p.yarn||p.hook) ? `
-      <div class="read-section">
-        <div class="read-section-label">Materials</div>
-        <div class="read-chips">
-          ${p.yarn?`<div class="read-chip"><span>🧶</span><span>${esc(p.yarn)}</span></div>`:''}
-          ${p.hook?`<div class="read-chip"><span>🪝</span><span>Hook ${esc(p.hook)}</span></div>`:''}
+  const photoSection=isDone?`
+    <div class="section">
+      <div class="section-lbl">Finished piece</div>
+      ${photo
+        ?`<img class="photo-preview" src="${photo}" alt="Finished piece"/>
+          <button class="btn-remove-photo" onclick="removeProjectPhoto(${p.id})">Remove photo</button>`
+        :`<div class="photo-upload-zone" onclick="document.getElementById('photo-fi-${p.id}').click()">
+            <span style="font-size:32px">📷</span>
+            <p>Tap to add a photo of your finished piece</p>
+          </div>
+          <input type="file" id="photo-fi-${p.id}" accept="image/*" style="display:none"
+            onchange="handlePhotoSelect(event,${p.id})"/>`}
+    </div>`:'';
+
+  document.getElementById('d-content').innerHTML=`
+    <div style="max-width:640px;margin:0 auto">
+      <div class="detail-hero">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div class="detail-hero-title" style="flex:1">${esc(p.name)}</div>
+          <button onclick="toggleFavDetail()" id="hero-fav-btn"
+            style="background:none;border:none;cursor:pointer;font-size:22px;color:rgba(255,255,255,.85);
+            padding:0;flex-shrink:0;line-height:1;margin-top:1px">${p.fav?'★':'☆'}</button>
         </div>
-      </div>` : ''}
-      ${stepsHTML}
-      ${!p.yarn && !p.hook && !hasSteps ? `<p style="font-size:13px;color:var(--color-text-secondary);padding-bottom:0.5rem">No details added yet.</p>` : ''}
-    </div>
-    <div class="read-actions">
-      ${hasPdf?`<button class="btn-view-pdf" onclick="viewPdf(${p.id})">📄 Open PDF</button>`:''}
-      <div style="flex:1"></div>
-      <button class="btn-sec" onclick="closeModal()">Close</button>
-      <button class="btn-edit" onclick="openEdit(${p.id})">✏️ Edit</button>
-    </div>
-  </div></div>`;
+        <div class="detail-hero-badges">
+          <span class="status-pill">${p.status}</span>
+        </div>
+      </div>
+      <div class="detail-body">
+        ${infoStrip}
+        ${p.notes?`<div class="section">
+          <div class="section-lbl">Notes</div>
+          <div style="background:rgba(255,255,255,.7);border-radius:0 var(--rl) var(--rl) 0;padding:10px 14px 12px;
+            font-size:14px;line-height:1.7;white-space:pre-wrap;border-left:3px solid var(--ac);margin:0">${esc(p.notes)}</div>
+        </div>`:''}
+        ${stepsHTML}
+        ${photoSection}
+      </div>
+    </div>`;
 }
 
-function modalHTML(p) {
-  const cats = ['Amigurumi','Blanket','Hat','Shawl','Bag','Clothing','Home decor','Other'];
-  const diffs = ['Easy','Medium','Hard'];
-  const statuses = ['To do','In progress','Done'];
-  const pdfSection = p && p.pdfName
-    ? `<div class="form-row">
-        <label>Pattern PDF</label>
-        <div class="pdf-attached">
-          <span>📄 ${esc(p.pdfName)}</span>
-          <button class="btn-view-pdf" onclick="viewPdf(${p.id})" type="button">Open</button>
-          <button class="pdf-remove" onclick="removePdf(${p.id})" title="Remove PDF" type="button">✕</button>
-        </div>
-       </div>`
-    : `<div class="form-row">
-        <label>Pattern PDF</label>
-        <div class="pdf-drop" id="pdf-drop-zone" onclick="document.getElementById('pdf-file-input').click()"
-          ondragover="event.preventDefault();this.classList.add('drag-over')"
-          ondragleave="this.classList.remove('drag-over')"
-          ondrop="handlePdfDrop(event)">
-          <span class="pdf-icon">📄</span>
-          <p>Click or drag & drop a PDF pattern</p>
-        </div>
-        <input type="file" id="pdf-file-input" accept="application/pdf" style="display:none" onchange="handlePdfSelect(event)" />
-        <div id="pdf-preview-attached" style="display:none" class="pdf-attached">
-          <span id="pdf-preview-name"></span>
-          <button class="pdf-remove" onclick="clearPdfPreview()" type="button">✕</button>
-        </div>
-       </div>`;
-  return `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <h2>${p ? 'Edit pattern' : 'New pattern'}</h2>
-    <div class="form-row">
-      <label>Pattern name</label>
-      <input id="f-name" value="${p?esc(p.name):''}" placeholder="e.g. Bunny amigurumi" />
-    </div>
-    <div class="form-row-2">
-      <div class="form-row" style="margin-bottom:0">
-        <label>Category</label>
-        <select id="f-cat">${cats.map(c=>`<option${p&&p.category===c?' selected':''}>${c}</option>`).join('')}</select>
-      </div>
-      <div class="form-row" style="margin-bottom:0">
-        <label>Difficulty</label>
-        <select id="f-diff">${diffs.map(d=>`<option${p&&p.difficulty===d?' selected':''}>${d}</option>`).join('')}</select>
-      </div>
-    </div>
-    <div class="form-row-2">
-      <div class="form-row" style="margin-bottom:0">
-        <label>Status</label>
-        <select id="f-status">${statuses.map(s=>`<option${p&&p.status===s?' selected':''}>${s}</option>`).join('')}</select>
-      </div>
-      <div class="form-row" style="margin-bottom:0">
-        <label>Hook size</label>
-        <input id="f-hook" value="${p?esc(p.hook||''):''}" placeholder="e.g. 4.0mm" />
-      </div>
-    </div>
-    <div class="form-row">
-      <label>Yarn (brand, weight, colour)</label>
-      <input id="f-yarn" value="${p?esc(p.yarn||''):''}" placeholder="e.g. Drops Safran – Coral" />
-    </div>
-    <div class="form-row">
-      <label>Notes</label>
-      <textarea id="f-notes" placeholder="Pattern notes, stitch counts, tips…">${p?esc(p.notes||''):''}</textarea>
-    </div>
-    ${pdfSection}
-    <div class="modal-actions">
-      ${p?`<button class="btn-del" onclick="deletePattern(${p.id})">Delete</button>`:''}
-      <button class="btn-sec" onclick="closeModal()">Cancel</button>
-      <button class="btn-primary" onclick="${p?`saveEdit(${p.id})`:'saveNew()'}">${p?'Save changes':'Add pattern'}</button>
-    </div>
-  </div></div>`;
+function toggleInfoStrip(header){
+  const chevron=header.querySelector('.info-strip-chevron');
+  const body=header.nextElementSibling;
+  const isOpen=body.classList.contains('open');
+  chevron.classList.toggle('open',!isOpen);
+  body.classList.toggle('open',!isOpen);
 }
 
-let pendingPdfData = null;
-let pendingPdfName = null;
-
-function handlePdfSelect(e) {
-  const file = e.target.files[0];
-  if (file) loadPdfFile(file);
-}
-function handlePdfDrop(e) {
-  e.preventDefault();
-  document.getElementById('pdf-drop-zone').classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file && file.type === 'application/pdf') loadPdfFile(file);
-}
-function loadPdfFile(file) {
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    pendingPdfData = ev.target.result;
-    pendingPdfName = file.name;
-    const zone = document.getElementById('pdf-drop-zone');
-    const preview = document.getElementById('pdf-preview-attached');
-    const nameEl = document.getElementById('pdf-preview-name');
-    if (zone) zone.style.display = 'none';
-    if (preview) preview.style.display = 'flex';
-    if (nameEl) nameEl.textContent = '📄 ' + file.name;
+// ── Photo handling ────────────────────────────────────────────────
+function handlePhotoSelect(e,projId){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const key='crochet_photo_proj_'+projId;
+    localStorage.setItem(key,ev.target.result);
+    const p=projects.find(x=>x.id===projId);
+    if(p){p.photoKey=key;saveProjects();renderProjectDetail(p);}
   };
   reader.readAsDataURL(file);
 }
-function clearPdfPreview() {
-  pendingPdfData = null; pendingPdfName = null;
-  const zone = document.getElementById('pdf-drop-zone');
-  const preview = document.getElementById('pdf-preview-attached');
-  if (zone) zone.style.display = '';
-  if (preview) preview.style.display = 'none';
-}
-function removePdf(id) {
-  const p = patterns.find(x=>x.id===id);
-  if (!p) return;
-  if (!confirm('Remove the PDF from this pattern?')) return;
-  localStorage.removeItem('crochet_pdf_' + id);
-  p.pdfName = null;
-  save();
-  openReadView(id);
-}
-function viewPdf(id) {
-  const data = localStorage.getItem('crochet_pdf_' + id);
-  const p = patterns.find(x=>x.id===id);
-  if (!data) { alert('PDF not found.'); return; }
-  const viewer = document.createElement('div');
-  viewer.className = 'pdf-viewer-overlay';
-  viewer.id = 'pdf-viewer';
-  viewer.innerHTML = `
-    <div class="pdf-viewer-bar">
-      <span>📄 ${p ? esc(p.pdfName||p.name) : 'Pattern PDF'}</span>
-      <button onclick="document.getElementById('pdf-viewer').remove()" title="Close">✕</button>
-    </div>
-    <iframe class="pdf-iframe" src="${data}"></iframe>`;
-  document.body.appendChild(viewer);
+function removeProjectPhoto(projId){
+  const p=projects.find(x=>x.id===projId);if(!p)return;
+  if(p.photoKey){localStorage.removeItem(p.photoKey);p.photoKey=null;}
+  saveProjects();renderProjectDetail(p);
 }
 
-function saveNew() {
-  const name = document.getElementById('f-name').value.trim();
-  if (!name) { document.getElementById('f-name').style.borderColor='#E24B4A'; return; }
-  const newId = nextId++;
-  const pat = {
-    id: newId,
-    name,
-    category: document.getElementById('f-cat').value,
-    difficulty: document.getElementById('f-diff').value,
-    status: document.getElementById('f-status').value,
-    hook: document.getElementById('f-hook').value.trim(),
-    yarn: document.getElementById('f-yarn').value.trim(),
-    notes: document.getElementById('f-notes').value.trim(),
-    fav: false,
-    pdfName: pendingPdfName || null
-  };
-  if (pendingPdfData) localStorage.setItem('crochet_pdf_' + newId, pendingPdfData);
-  pendingPdfData = null; pendingPdfName = null;
-  patterns.push(pat);
-  save(); closeModal(); render();
+// ── Pattern library ───────────────────────────────────────────────
+function renderLibrary(){
+  const q=document.getElementById('lib-search').value.toLowerCase();
+  const cat=document.getElementById('lib-cat-filter').value;
+  const list=patterns.filter(p=>
+    (!q||p.name.toLowerCase().includes(q)||(p.notes||'').toLowerCase().includes(q))&&
+    (!cat||p.category===cat));
+  document.getElementById('lib-count-lbl').textContent=
+    `${patterns.length} pattern${patterns.length!==1?'s':''}`;
+  const grid=document.getElementById('lib-grid');
+  if(!list.length){grid.innerHTML='<div class="empty">No patterns yet.</div>';return;}
+  grid.innerHTML=list.map(p=>`
+    <div class="card" onclick="goToDetail('pattern',${p.id},'library')">
+      <div class="card-body" style="padding:1rem">
+        <div class="card-top">
+          <div class="card-title">${esc(p.name)}</div>
+          <button class="fav-btn" onclick="event.stopPropagation();toggleFavPat(${p.id})">${p.fav?'★':'☆'}</button>
+        </div>
+        <div class="card-badges">
+          ${p.category?`<span class="cat-tag">${esc(p.category)}</span>`:''}
+          ${p.difficulty?diffBadge(p.difficulty):''}
+          ${p.pdfName?`<span class="pdf-badge">📄 PDF</span>`:''}
+        </div>
+        <div class="card-meta">
+          ${p.yarn?`<span>🧶 ${esc(p.yarn)}</span>`:''}
+          ${p.hook?`<span>🪝 Hook ${esc(p.hook)}</span>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+function toggleFavPat(id){
+  const p=patterns.find(x=>x.id===id);if(p){p.fav=!p.fav;savePatterns();renderLibrary();}
 }
 
-function saveEdit(id) {
-  const p = patterns.find(x=>x.id===id);
-  const name = document.getElementById('f-name').value.trim();
-  if (!name) { document.getElementById('f-name').style.borderColor='#E24B4A'; return; }
-  p.name = name;
-  p.category = document.getElementById('f-cat').value;
-  p.difficulty = document.getElementById('f-diff').value;
-  p.status = document.getElementById('f-status').value;
-  p.hook = document.getElementById('f-hook').value.trim();
-  p.yarn = document.getElementById('f-yarn').value.trim();
-  p.notes = document.getElementById('f-notes').value.trim();
-  if (pendingPdfData) {
-    localStorage.setItem('crochet_pdf_' + id, pendingPdfData);
-    p.pdfName = pendingPdfName;
-    pendingPdfData = null; pendingPdfName = null;
-  }
-  save(); closeModal(); render();
+// ── Pattern detail ────────────────────────────────────────────────
+function renderPatternDetail(p){
+  const usedIn=projects.filter(pr=>pr.patternId===p.id);
+  document.getElementById('d-content').innerHTML=`
+    <div style="max-width:640px;margin:0 auto">
+      <div class="detail-hero">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div class="detail-hero-title" style="flex:1">${esc(p.name)}</div>
+          <button onclick="toggleFavDetail()" id="hero-fav-btn"
+            style="background:none;border:none;cursor:pointer;font-size:22px;color:rgba(255,255,255,.85);
+            padding:0;flex-shrink:0;line-height:1;margin-top:1px">${p.fav?'★':'☆'}</button>
+        </div>
+        <div class="detail-hero-badges">
+          ${p.category?`<span class="cat-tag">${esc(p.category)}</span>`:''}
+          ${p.difficulty?diffBadge(p.difficulty):''}
+          ${p.pdfName?`<span class="pdf-badge">📄 PDF</span>`:''}
+        </div>
+      </div>
+      <div class="detail-body">
+        ${(p.yarn||p.hook)?`<div class="section">
+          <div class="section-lbl">Materials (pattern defaults)</div>
+          <div class="chips">
+            ${p.yarn?`<div class="chip"><span>🧶</span><span>${esc(p.yarn)}</span></div>`:''}
+            ${p.hook?`<div class="chip"><span>🪝</span><span>Hook ${esc(p.hook)}</span></div>`:''}
+          </div>
+        </div>`:''}
+        ${p.notes?`<div class="section">
+          <div class="section-lbl">Steps &amp; notes</div>
+          <div style="background:rgba(255,255,255,.7);border-radius:0 var(--rl) var(--rl) 0;padding:10px 14px 12px;
+            font-size:14px;line-height:1.7;white-space:pre-wrap;border-left:3px solid var(--ac)">${esc(p.notes)}</div>
+        </div>`:''}
+        ${usedIn.length?`<div class="section">
+          <div class="section-lbl">Used in projects</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            ${usedIn.map(pr=>`
+              <div class="pattern-ref-card" onclick="goToDetail('project',${pr.id},'library')">
+                <div class="pattern-ref-icon">🪡</div>
+                <div style="flex:1">
+                  <div class="pattern-ref-name">${esc(pr.name)}</div>
+                  <div class="pattern-ref-meta">${pr.status}${pr.startDate?' · '+pr.startDate:''}</div>
+                </div>
+                <span style="color:var(--ac);font-size:18px">›</span>
+              </div>`).join('')}
+          </div>
+        </div>`:''}
+      </div>
+      <div class="detail-bar">
+        ${p.pdfName?`<button class="btn-pdf-open" onclick="viewPdf(${p.id})">📄 Open PDF</button>`:''}
+        <button class="btn-add" onclick="openNewProjectFromPattern(${p.id})"
+          style="padding:9px 16px;font-size:13px">+ Start project</button>
+        <div style="flex:1"></div>
+      </div>
+    </div>`;
 }
 
-function deletePattern(id) {
-  if (!confirm('Delete this pattern? This cannot be undone.')) return;
-  localStorage.removeItem('crochet_pdf_' + id);
-  patterns = patterns.filter(x=>x.id!==id);
-  save(); closeModal(); render();
+// ── Steps ─────────────────────────────────────────────────────────
+function getProjStepsDone(id){try{return JSON.parse(localStorage.getItem('crochet_psteps_'+id)||'[]');}catch{return[];}}
+function saveProjStepsDone(id,done){localStorage.setItem('crochet_psteps_'+id,JSON.stringify(done));}
+function toggleProjStep(id,idx){
+  const done=getProjStepsDone(id),pos=done.indexOf(idx);
+  if(pos===-1)done.push(idx);else done.splice(pos,1);
+  saveProjStepsDone(id,done);refreshProjSteps(id);
 }
-
-render();
-</script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+function resetProjSteps(id){saveProjStepsDone(id,[]);refreshProjSteps(id);}
+function refreshProjSteps(id){
+  const p=projects.find(x=>x.id===id);if(!p)return;
+  const pat=patterns.find(x=>x.id===p.patternId);
+  const lines=pat?(pat.notes||'').split('\n').filter(l=>l.trim()):(p.steps||[]);
+  const done=getProjStepsDone(id),total=lines.length;
+  const doneCount=done.filter(i=>i<total).length;
+  const pct=total?Math.round(doneCount/total*100):0;
+  const bar=document.getElementById('steps-bar-'+id);
+  const lbl=document.getElementById('steps-lbl-'+id);
+  const pctEl=document.getElementById('steps-pct-'+id);
+  if(bar)bar.style.width=pct+'%';
+  if(lbl)lbl.textContent=`${doneCount} of ${total} done`;
+  if(pctEl)pctEl.textContent=pct+'%';
+  lines.forEach((_,i)=>{
+    const row=document.getElementById(`pstep-${id}-${i}`);
+    if(row)row.classList.toggle('done',done.includes(i));
   });
 }
+
+// ── Modals ────────────────────────────────────────────────────────
+function closeModal(){document.getElementById('modal-area').innerHTML='';}
+
+function openNewProject(prePatternId){
+  document.getElementById('modal-area').innerHTML=projectModalHTML(null,prePatternId);
+}
+function openEditProject(id){
+  const p=projects.find(x=>x.id===id);
+  if(p) document.getElementById('modal-area').innerHTML=projectModalHTML(p);
+}
+function openNewProjectFromPattern(patternId){
+  goBack();
+  setTimeout(()=>openNewProject(patternId),320);
+}
+function openNewPattern(){
+  document.getElementById('modal-area').innerHTML=patternModalHTML(null);
+}
+function openEditPattern(id){
+  const p=patterns.find(x=>x.id===id);
+  if(p) document.getElementById('modal-area').innerHTML=patternModalHTML(p);
+}
+
+function projectModalHTML(p,prePatternId){
+  const statuses=['Active','Done','Frogged'];
+  const selPatId=p?p.patternId:(prePatternId||null);
+  const pickerItems=`
+    <div class="picker-none${selPatId===null?' selected':''}" id="pick-none" onclick="selectPattern(null)">
+      <div class="picker-item-icon" style="background:linear-gradient(135deg,#c9b8ff,#e0d4ff)">✦</div>
+      <div>
+        <div class="picker-item-name">Freestyle</div>
+        <div class="picker-item-meta">No pattern — freeform project</div>
+      </div>
+    </div>
+    ${patterns.map(pat=>`
+      <div class="picker-item${selPatId===pat.id?' selected':''}" id="pick-${pat.id}" onclick="selectPattern(${pat.id})">
+        <div class="picker-item-icon">📄</div>
+        <div>
+          <div class="picker-item-name">${esc(pat.name)}</div>
+          <div class="picker-item-meta">${[pat.category,pat.difficulty].filter(Boolean).join(' · ')}</div>
+        </div>
+      </div>`).join('')}`;
+
+  return `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2>${p?'Edit project':'New project'}</h2>
+    <div class="form-row"><label>Project name</label>
+      <input id="pj-name" value="${p?esc(p.name):''}" placeholder="e.g. Blanket for Mum"/></div>
+    <div class="form-row"><label>Status</label>
+      <select id="pj-status">${statuses.map(s=>`<option${p&&p.status===s?' selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="form-row"><label>Pattern (optional)</label>
+      <div class="picker-list">${pickerItems}</div>
+      <input type="hidden" id="pj-pat-id" value="${selPatId!==null?selPatId:''}"/>
+    </div>
+    ${!p||!p.patternId?`<div class="form-row"><label>Your steps (one per line, freestyle only)</label>
+      <textarea id="pj-steps" placeholder="Each line becomes a tappable step…">${p&&p.steps?(p.steps||[]).join('\n'):''}</textarea></div>`:''}
+    <div class="form-row-2">
+      <div class="form-row" style="margin-bottom:0"><label>Yarn</label>
+        <input id="pj-yarn" value="${p?esc(p.yarn||''):''}" placeholder="e.g. Drops Lima – Teal"/></div>
+      <div class="form-row" style="margin-bottom:0"><label>Hook</label>
+        <input id="pj-hook" value="${p?esc(p.hook||''):''}" placeholder="e.g. 5.0mm"/></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row" style="margin-bottom:0"><label>Start date</label>
+        <input type="date" id="pj-start" value="${p?p.startDate||'':''}"/></div>
+      <div class="form-row" style="margin-bottom:0"><label>End date</label>
+        <input type="date" id="pj-end" value="${p?p.endDate||'':''}"/></div>
+    </div>
+    <div class="form-row"><label>Notes</label>
+      <textarea id="pj-notes" placeholder="Notes specific to this make…">${p?esc(p.notes||''):''}</textarea></div>
+    <div class="modal-acts">
+      ${p?`<button class="btn-del" onclick="deleteProject(${p.id})">Delete</button>`:''}
+      <button class="btn-sec" onclick="closeModal()">Cancel</button>
+      <button class="btn-add" onclick="${p?`saveEditProject(${p.id})`:'saveNewProject()'}">
+        ${p?'Save':'Add project'}</button>
+    </div>
+  </div></div>`;
+}
+
+function selectPattern(id){
+  document.getElementById('pj-pat-id').value = id===null?'':id;
+  document.querySelectorAll('.picker-item,.picker-none').forEach(el=>el.classList.remove('selected'));
+  const target=id===null?document.getElementById('pick-none'):document.getElementById('pick-'+id);
+  if(target) target.classList.add('selected');
+  // Show/hide freestyle steps textarea (only present when creating a new project)
+  const stepsEl=document.getElementById('pj-steps');
+  if(stepsEl){
+    const stepsRow=stepsEl.closest('.form-row');
+    if(stepsRow) stepsRow.style.display=id===null?'':'none';
+  }
+}
+
+function saveNewProject(){
+  const name=document.getElementById('pj-name').value.trim();
+  if(!name){document.getElementById('pj-name').style.borderColor='#e24b4a';return;}
+  const patId=document.getElementById('pj-pat-id').value;
+  const stepsEl=document.getElementById('pj-steps');
+  const steps=stepsEl?stepsEl.value.split('\n').filter(l=>l.trim()):[];
+  const id=nextProjId++;
+  projects.push({id,name,
+    patternId:patId?parseInt(patId):null,
+    steps:patId?[]:steps,
+    status:document.getElementById('pj-status').value,
+    yarn:document.getElementById('pj-yarn').value.trim(),
+    hook:document.getElementById('pj-hook').value.trim(),
+    startDate:document.getElementById('pj-start').value||null,
+    endDate:document.getElementById('pj-end').value||null,
+    notes:document.getElementById('pj-notes').value.trim(),
+    fav:false,photoKey:null});
+  saveProjects();closeModal();renderProjects();
+}
+function saveEditProject(id){
+  const p=projects.find(x=>x.id===id);
+  const name=document.getElementById('pj-name').value.trim();
+  if(!name){document.getElementById('pj-name').style.borderColor='#e24b4a';return;}
+  const patId=document.getElementById('pj-pat-id').value;
+  const stepsEl=document.getElementById('pj-steps');
+  p.name=name; p.status=document.getElementById('pj-status').value;
+  p.patternId=patId?parseInt(patId):null;
+  p.steps=patId?[]:(stepsEl?stepsEl.value.split('\n').filter(l=>l.trim()):[]);
+  p.yarn=document.getElementById('pj-yarn').value.trim();
+  p.hook=document.getElementById('pj-hook').value.trim();
+  p.startDate=document.getElementById('pj-start').value||null;
+  p.endDate=document.getElementById('pj-end').value||null;
+  p.notes=document.getElementById('pj-notes').value.trim();
+  saveProjects();closeModal();
+  if(currentDetailId===id&&currentDetailType==='project') renderProjectDetail(p);
+  renderProjects();
+}
+function deleteProject(id){
+  if(!confirm('Delete this project?'))return;
+  localStorage.removeItem('crochet_psteps_'+id);
+  const p=projects.find(x=>x.id===id);
+  if(p?.photoKey) localStorage.removeItem(p.photoKey);
+  projects=projects.filter(x=>x.id!==id);
+  saveProjects();closeModal();
+  if(currentDetailId===id) goBack(); else renderProjects();
+}
+
+// ── Pattern modal ─────────────────────────────────────────────────
+function patternModalHTML(p){
+  const cats=['Amigurumi','Blanket','Hat','Shawl','Bag','Clothing','Home decor','Other'];
+  const diffs=['Easy','Medium','Hard'];
+  const pdfSection=p&&p.pdfName
+    ?`<div class="form-row"><label>Pattern PDF</label>
+       <div class="pdf-attached"><span>📄 ${esc(p.pdfName)}</span>
+         <button class="btn-pdf-open" style="padding:6px 12px;font-size:13px" onclick="viewPdf(${p.id})" type="button">Open</button>
+         <button class="pdf-remove" onclick="removePdf(${p.id})" type="button">✕</button>
+       </div></div>`
+    :`<div class="form-row"><label>Pattern PDF</label>
+       <div class="pdf-drop" id="pdf-dz" onclick="document.getElementById('pdf-fi').click()"
+         ondragover="event.preventDefault();this.classList.add('drag-over')"
+         ondragleave="this.classList.remove('drag-over')" ondrop="handlePdfDrop(event)">
+         <span class="pdf-icon">📄</span><p>Click or drag &amp; drop a PDF</p>
+       </div>
+       <input type="file" id="pdf-fi" accept="application/pdf" style="display:none" onchange="handlePdfSelect(event)"/>
+       <div id="pdf-preview" style="display:none" class="pdf-attached">
+         <span id="pdf-preview-name"></span>
+         <button class="pdf-remove" onclick="clearPdfPreview()" type="button">✕</button>
+       </div></div>`;
+  return `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2>${p?'Edit pattern':'Add to library'}</h2>
+    <div class="form-row"><label>Pattern name</label>
+      <input id="f-name" value="${p?esc(p.name):''}" placeholder="e.g. Bunny amigurumi"/></div>
+    <div class="form-row-2">
+      <div class="form-row" style="margin-bottom:0"><label>Category</label>
+        <select id="f-cat">${cats.map(c=>`<option${p&&p.category===c?' selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="form-row" style="margin-bottom:0"><label>Difficulty</label>
+        <select id="f-diff">${diffs.map(d=>`<option${p&&p.difficulty===d?' selected':''}>${d}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row" style="margin-bottom:0"><label>Default yarn</label>
+        <input id="f-yarn" value="${p?esc(p.yarn||''):''}" placeholder="e.g. Drops Safran"/></div>
+      <div class="form-row" style="margin-bottom:0"><label>Default hook</label>
+        <input id="f-hook" value="${p?esc(p.hook||''):''}" placeholder="e.g. 4.0mm"/></div>
+    </div>
+    <div class="form-row"><label>Steps / notes (one per line)</label>
+      <textarea id="f-notes" placeholder="Each line becomes a tappable step in projects…">${p?esc(p.notes||''):''}</textarea></div>
+    ${pdfSection}
+    <div class="modal-acts">
+      ${p?`<button class="btn-del" onclick="deletePattern(${p.id})">Delete</button>`:''}
+      <button class="btn-sec" onclick="closeModal()">Cancel</button>
+      <button class="btn-add" onclick="${p?`saveEditPattern(${p.id})`:'saveNewPattern()'}">
+        ${p?'Save':'Add to library'}</button>
+    </div>
+  </div></div>`;
+}
+function saveNewPattern(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){document.getElementById('f-name').style.borderColor='#e24b4a';return;}
+  const id=nextPatId++;
+  patterns.push({id,name,
+    category:document.getElementById('f-cat').value,
+    difficulty:document.getElementById('f-diff').value,
+    yarn:document.getElementById('f-yarn').value.trim(),
+    hook:document.getElementById('f-hook').value.trim(),
+    notes:document.getElementById('f-notes').value.trim(),
+    fav:false,pdfName:pendingPdfName||null});
+  if(pendingPdfData)localStorage.setItem('crochet_pdf_'+id,pendingPdfData);
+  pendingPdfData=null;pendingPdfName=null;
+  savePatterns();closeModal();renderLibrary();
+}
+function saveEditPattern(id){
+  const p=patterns.find(x=>x.id===id);
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){document.getElementById('f-name').style.borderColor='#e24b4a';return;}
+  p.name=name;p.category=document.getElementById('f-cat').value;
+  p.difficulty=document.getElementById('f-diff').value;
+  p.yarn=document.getElementById('f-yarn').value.trim();
+  p.hook=document.getElementById('f-hook').value.trim();
+  p.notes=document.getElementById('f-notes').value.trim();
+  if(pendingPdfData){localStorage.setItem('crochet_pdf_'+id,pendingPdfData);p.pdfName=pendingPdfName;pendingPdfData=null;pendingPdfName=null;}
+  savePatterns();closeModal();
+  if(currentDetailId===id&&currentDetailType==='pattern') renderPatternDetail(p);
+  renderLibrary();
+}
+function deletePattern(id){
+  if(!confirm('Delete this pattern? Projects using it will lose their pattern link.'))return;
+  localStorage.removeItem('crochet_pdf_'+id);
+  patterns=patterns.filter(x=>x.id!==id);
+  savePatterns();closeModal();
+  if(currentDetailId===id) goBack(); else renderLibrary();
+}
+
+// ── PDF ───────────────────────────────────────────────────────────
+let pendingPdfData=null,pendingPdfName=null;
+function handlePdfSelect(e){const f=e.target.files[0];if(f)loadPdf(f);}
+function handlePdfDrop(e){
+  e.preventDefault();document.getElementById('pdf-dz').classList.remove('drag-over');
+  const f=e.dataTransfer.files[0];if(f&&f.type==='application/pdf')loadPdf(f);
+}
+function loadPdf(file){
+  const r=new FileReader();
+  r.onload=ev=>{
+    pendingPdfData=ev.target.result;pendingPdfName=file.name;
+    const dz=document.getElementById('pdf-dz'),pr=document.getElementById('pdf-preview'),nm=document.getElementById('pdf-preview-name');
+    if(dz)dz.style.display='none';if(pr)pr.style.display='flex';if(nm)nm.textContent='📄 '+file.name;
+  };
+  r.readAsDataURL(file);
+}
+function clearPdfPreview(){
+  pendingPdfData=null;pendingPdfName=null;
+  const dz=document.getElementById('pdf-dz'),pr=document.getElementById('pdf-preview');
+  if(dz)dz.style.display='';if(pr)pr.style.display='none';
+}
+function removePdf(id){
+  const p=patterns.find(x=>x.id===id);if(!p)return;
+  if(!confirm('Remove PDF?'))return;
+  localStorage.removeItem('crochet_pdf_'+id);p.pdfName=null;savePatterns();
+  closeModal();if(currentDetailId===id&&currentDetailType==='pattern')renderPatternDetail(p);
+}
+function viewPdf(id){
+  const data=localStorage.getItem('crochet_pdf_'+id);
+  const p=patterns.find(x=>x.id===id);
+  if(!data){alert('PDF not found.');return;}
+  const v=document.createElement('div');v.className='pdf-viewer';v.id='pdf-viewer';
+  v.innerHTML=`<div class="pdf-bar"><span>📄 ${p?esc(p.pdfName||p.name):'PDF'}</span>
+    <button onclick="document.getElementById('pdf-viewer').remove()">✕</button></div>
+    <iframe class="pdf-iframe" src="${data}"></iframe>`;
+  document.body.appendChild(v);
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+renderProjects();
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
 </body>
 </html>
