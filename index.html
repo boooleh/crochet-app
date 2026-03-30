@@ -250,6 +250,24 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .info-row { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .info-row-label { color: var(--tx2); font-weight: 700; font-size: 11px; min-width: 60px; }
 .info-row-val { color: var(--tx); font-weight: 600; }
+
+/* Pattern image gallery */
+.gallery-wrap { margin-bottom: 1.4rem; }
+.gallery-main { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:var(--rl); display:block; background:var(--bg3); }
+.gallery-main-empty { width:100%; aspect-ratio:4/3; border-radius:var(--rl); background:linear-gradient(135deg,#ede7ff,#ddd0ff);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; cursor:pointer; border:2px dashed var(--bd2); transition:background .15s; }
+.gallery-main-empty:hover { background:var(--acl); }
+.gallery-main-empty span { font-size:36px; }
+.gallery-main-empty p { font-size:13px; color:var(--tx2); font-weight:600; }
+.gallery-thumbs { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+.gallery-thumb { width:56px; height:56px; object-fit:cover; border-radius:var(--r); cursor:pointer;
+  border:2px solid transparent; transition:border-color .15s, opacity .15s; flex-shrink:0; }
+.gallery-thumb.active { border-color:var(--ac); }
+.gallery-thumb:hover { opacity:.85; }
+.gallery-thumb-add { width:56px; height:56px; border-radius:var(--r); border:2px dashed var(--bd2);
+  display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:22px; color:var(--tx2);
+  flex-shrink:0; transition:border-color .15s, background .15s; background:rgba(255,255,255,.5); }
+.gallery-thumb-add:hover { border-color:var(--ac); background:var(--acl); }
 </style>
 </head>
 <body>
@@ -328,7 +346,8 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 <script>
 // ── Data ──────────────────────────────────────────────────────────
 let patterns = JSON.parse(localStorage.getItem('crochet_patterns_v2')||'null') || [
-  {id:4,name:'Duck amigurumi',category:'Amigurumi',difficulty:'Medium',yarn:'Main color yarn + Yellow yarn (bill)',hook:'Appropriate hook for yarn weight',notes:'BODY — Using main color yarn:\nR1: 6 sc in Magic Ring (6)\nR2: 1 inc in each sc (12)\nR3: [1 sc, 1 inc] x6 (18)\nR4: [2 sc, 1 inc] x6 (24)\nR5: [3 sc, 1 inc] x6 (30)\nR6: 1 sc in each sc (30)\nR7: 1 sc in each sc (30)\nAdd safety eyes between R4 & R5, straight across the center of the face.\nR8: 1 sc in each sc (30)\nR9: 1 sc in each sc (30)\nR10: 1 sc in each sc (30)\nR11: 1 sc in each sc (30)\nR12: [3 sc, 1 dec] x6 (24)\nR13: 1 sc in each sc (24)\nR14: [3 sc, 1 inc] x6 (30)\nR15: [4 sc, 1 inc] x6 (36)\nStuff head.\nR16: 1 sc in each sc (36)\nR17: 1 sc in each sc (36)\nR18: 1 sc in each sc (36)\nR19: 1 sc in each sc (36)\nR20: 1 sc in each sc (36)\nR21: 1 sc in each sc (36)\nR22: [4 sc, 1 dec] x6 (30)\nR23: [3 sc, 1 dec] x6 (24)\nR24: [2 sc, 1 dec] x6 (18)\nR25: [1 sc, 1 dec] x6 (12)\nR26: 6 dec (6)\nStuff body. Close off and weave in end.\n\nBILL — Using yellow yarn:\nR1: 6 sc in Magic Ring (6)\nR2: 1 inc in each sc (12)\nR3: 1 sc in each sc (12)\nR4: 1 sc in each sc (12)\nR5: 1 sc in each sc (12)\nR6: 1 sc in each sc (12)\nFasten off.',fav:false,pdfName:null}
+  {id:1,name:'Duck amigurumi',category:'Amigurumi',difficulty:'Medium',yarn:'Main color yarn + Yellow yarn (bill)',hook:'Appropriate hook for yarn weight',notes:'BODY — Using main color yarn:\nR1: 6 sc in Magic Ring (6)\nR2: 1 inc in each sc (12)\nR3: [1 sc, 1 inc] x6 (18)\nR4: [2 sc, 1 inc] x6 (24)\nR5: [3 sc, 1 inc] x6 (30)\nR6: 1 sc in each sc (30)\nR7: 1 sc in each sc (30)\nAdd safety eyes between R4 & R5, straight across the center of the face.\nR8: 1 sc in each sc (30)\nR9: 1 sc in each sc (30)\nR10: 1 sc in each sc (30)\nR11: 1 sc in each sc (30)\nR12: [3 sc, 1 dec] x6 (24)\nR13: 1 sc in each sc (24)\nR14: [3 sc, 1 inc] x6 (30)\nR15: [4 sc, 1 inc] x6 (36)\nStuff head.\nR16: 1 sc in each sc (36)\nR17: 1 sc in each sc (36)\nR18: 1 sc in each sc (36)\nR19: 1 sc in each sc (36)\nR20: 1 sc in each sc (36)\nR21: 1 sc in each sc (36)\nR22: [4 sc, 1 dec] x6 (30)\nR23: [3 sc, 1 dec] x6 (24)\nR24: [2 sc, 1 dec] x6 (18)\nR25: [1 sc, 1 dec] x6 (12)\nR26: 6 dec (6)\nStuff body. Close off and weave in end.\n\nBILL — Using yellow yarn:\nR1: 6 sc in Magic Ring (6)\nR2: 1 inc in each sc (12)\nR3: 1 sc in each sc (12)\nR4: 1 sc in each sc (12)\nR5: 1 sc in each sc (12)\nR6: 1 sc in each sc (12)\nFasten off.',fav:false,pdfName:null},
+  {id:2,name:'Mini Monsters',category:'Amigurumi',difficulty:'Medium',yarn:'4ply/DK yarn in any color',hook:'3.0mm (body), 2.0mm (details)',notes:'Materials: 3.0mm & 2.0mm hook, 4ply/DK yarn, safety eyes (4mm/6mm/8mm), fiberfill, felt (white & red), 10mm pom pom\n\nFOOT + BODY:\nR1: 6 sc in MR [6]\nR2: 6 inc [12]\nR3: 12 sc [12]\nMake two feet. Fasten off first. Change color on last stitch of second foot.\nJoin legs: Ch 2 to connect both feet.\nR4: 12 sc (2nd foot), 2 sc (chain), 12 sc (1st foot), 2 sc (chain) [28]\nR5: 12 sc, 2 inc, 14 sc [30]\nR6: (2 sc, inc, 2 sc) x6 [36]\nR7: (5 sc, inc) x6 [42]\nR8: (13 sc, inc) x3 [45]\nR9-12: 45 sc [45]\nR13: (13 sc, dec) x3 [42]\nR14-16: 42 sc [42]\nR17: (5 sc, dec) x6 [36]\nR18-19: 36 sc [36]\nR20: (2 sc, dec, 2 sc) x6 [30]\nR21: 30 sc [30]\nR22: (3 sc, dec) x6 [24]\nR23: (1 sc, dec, 1 sc) x6 [18]\nR24: (1 sc, dec) x6 [12]\nR25: 6 dec [6]\nStuff body. Cut yarn and fasten off.\nEmbroider mouth across R11-R13. Cut felt for tongue (red) and teeth (white).\n\nARMS:\nR1: 6 sc in MR [6]\nR2: (1 sc, inc) x3 [9]\nR3-6: 9 sc [9]\nStuff. Leave long tail. Sew below R15 from feet.\nEmbroider claws in contrasting color.\n\nEYES (Large, for 5mm or 8mm pupil):\nR1: 6 sc in MR [6]\nR2: 6 inc [12]\nR3: (1 sc, inc) x6 [18]\nR4-5: 18 sc [18]\nFasten off. Glue to R14-R18 of body.\n\nEYES (Medium, for 5mm pupil):\nR1: 6 sc in MR [6]\nR2: 6 inc [12]\nR3: (3 sc, inc) x3 [15]\nR4: 15 sc [15]\nFasten off.\n\nEYES (Small, for 4mm pupil):\nR1: 6 sc in MR [6]\nR2: 6 inc [12]\nR3-4: 12 sc [12]\nFasten off.\n\nHORN (split 4-ply into 2 strands):\nR1: 6 sc in MR [6]\nR2: 6 sc [6]\nR3: inc, 4 sc, inc [8]\nR4: inc, 6 sc, inc [10]\nR5: inc, 8 sc, inc [12]\nR6: inc, 10 sc, inc [14]\nR7: 14 sc [14]\nSew between R21-R24. Wrap contrasting yarn at R3 and R5 for rings.\n\nHAT (split 4-ply into 2 strands):\nR1: 6 sc in MR [6]\nR2: (1 sc, inc) x3 [9]\nChange color. R3: 9 sc\nChange color. R4: (1 sc, inc, 1 sc) x3 [12]\nR5: 12 sc [12]\nChange color. R6: (3 sc, inc) x3 [15]\nChange color. R7: 15 sc [15]\nR8: (2 sc, inc, 2 sc) x3 [18]\nGlue 1cm pom pom on top.\n\nBASEBALL CAP:\nR1: 6 sc in MR [6]\nR2: 6 inc [12]\nR3: (1 sc, inc) x6 [18]\nR4: (1 sc, inc, 1 sc) x6 [24]\nR5: (3 sc, inc) x6 [30]\nR6-7: 30 sc [30]\nR8: 10 sl st, 1 sc, 1 hdc, 1 dc, 4 inc dc, 1 dc, 1 hdc, 1 sc, 10 sl st\nLeave long tail for sewing to head.',fav:false,pdfName:null}
 ];
 let projects = JSON.parse(localStorage.getItem('crochet_projects_v1')||'null') || [];
 let nextPatId  = Math.max(...patterns.map(p=>p.id),4)+1;
@@ -619,6 +638,70 @@ function toggleFavPat(id){
   const p=patterns.find(x=>x.id===id);if(p){p.fav=!p.fav;savePatterns();renderLibrary();}
 }
 
+// ── Pattern image gallery ─────────────────────────────────────────
+function getPatternImages(id){
+  try{ return JSON.parse(localStorage.getItem('crochet_pat_imgs_'+id)||'[]'); }catch{ return []; }
+}
+function savePatternImages(id,imgs){ localStorage.setItem('crochet_pat_imgs_'+id,JSON.stringify(imgs)); }
+function addPatternImage(patId){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*'; inp.multiple=true;
+  inp.onchange=e=>{
+    const files=Array.from(e.target.files);
+    let loaded=0;
+    const imgs=getPatternImages(patId);
+    files.forEach(file=>{
+      const r=new FileReader();
+      r.onload=ev=>{
+        imgs.push(ev.target.result);
+        savePatternImages(patId,imgs);
+        loaded++;
+        if(loaded===files.length){
+          const p=patterns.find(x=>x.id===patId);
+          if(p) renderPatternDetail(p);
+        }
+      };
+      r.readAsDataURL(file);
+    });
+  };
+  inp.click();
+}
+function removePatternImage(patId,idx){
+  const imgs=getPatternImages(patId);
+  imgs.splice(idx,1);
+  savePatternImages(patId,imgs);
+  const p=patterns.find(x=>x.id===patId);
+  if(p) renderPatternDetail(p);
+}
+function galleryThumbClick(el){
+  const pid=parseInt(el.getAttribute('data-pid'));
+  const idx=parseInt(el.getAttribute('data-idx'));
+  const imgs=getPatternImages(pid);
+  const src=imgs[idx];
+  setActiveGalleryImg(src);
+}
+function setActiveGalleryImg(src){
+  const main=document.getElementById('gallery-main-img');
+  if(main){ main.src=src; }
+  document.querySelectorAll('.gallery-thumb').forEach(t=>{
+    t.classList.toggle('active', t.getAttribute('data-src')===src);
+  });
+}
+
+function buildPatternGallery(p){
+  const imgs=getPatternImages(p.id);
+  if(!imgs.length){
+    return '<div class="gallery-wrap"><div class="gallery-main-empty" onclick="addPatternImage('+p.id+')"><span style="font-size:36px">📷</span><p>Add pattern photos</p></div></div>';
+  }
+  let thumbs='';
+  for(let i=0;i<imgs.length;i++){
+    const active=i===0?' active':'';
+    thumbs+='<img class="gallery-thumb'+active+'" src="'+imgs[i]+'" data-idx="'+i+'" data-pid="'+p.id+'" onclick="galleryThumbClick(this)" alt=""/>';
+  }
+  thumbs+='<div class="gallery-thumb-add" onclick="addPatternImage('+p.id+')" title="Add image">+</div>';
+  return '<div class="gallery-wrap"><img id="gallery-main-img" class="gallery-main" src="'+imgs[0]+'" alt="Pattern preview"/><div class="gallery-thumbs">'+thumbs+'</div></div>';
+}
+
 // ── Pattern detail ────────────────────────────────────────────────
 function renderPatternDetail(p){
   const usedIn=projects.filter(pr=>pr.patternId===p.id);
@@ -638,6 +721,7 @@ function renderPatternDetail(p){
         </div>
       </div>
       <div class="detail-body">
+        ${buildPatternGallery(p)}
         ${(p.yarn||p.hook)?`<div class="section">
           <div class="section-lbl">Materials (pattern defaults)</div>
           <div class="chips">
