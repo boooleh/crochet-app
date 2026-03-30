@@ -2,7 +2,7 @@
   "name": "My Crochet Patterns",
   "short_name": "My Patterns",
   "description": "Save and manage all your crochet patterns",
-  "start_url": "/",
+  "start_url": "/crochet-app/",
   "display": "standalone",
   "background_color": "#fffaf7",
   "theme_color": "#e8799a",
