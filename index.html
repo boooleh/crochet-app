@@ -1180,6 +1180,145 @@ function viewPdf(id){
   document.body.appendChild(v);
 }
 
+
+// ── Swipe-back gesture ────────────────────────────────────────────
+(function(){
+  const EDGE_THRESHOLD = 22;   // px from left edge to start gesture
+  const COMPLETE_RATIO = 0.38; // fraction of screen width to trigger back
+  const VELOCITY_THRESHOLD = 0.4; // px/ms to trigger even on short swipe
+
+  let tracking = false;
+  let startX = 0, startY = 0, lastX = 0, lastTime = 0;
+  let activeFg = null, activeBg = null;
+  let backFn = null;
+  let axisLocked = null; // 'h' | 'v' | null
+
+  function getActiveContext(){
+    const editOn  = document.getElementById('s-edit').classList.contains('on');
+    const detailOn = document.getElementById('s-detail').classList.contains('on');
+    if(editOn){
+      const bg = editFrom === 'detail'
+        ? document.getElementById('s-detail')
+        : document.getElementById('s-'+editFrom);
+      return { fg: document.getElementById('s-edit'), bg, fn: closeEditScreen };
+    }
+    if(detailOn){
+      const bg = document.getElementById('s-'+detailFrom);
+      return { fg: document.getElementById('s-detail'), bg, fn: goBack };
+    }
+    return null;
+  }
+
+  function setTransition(el, on){
+    el.style.transition = on
+      ? 'transform .3s cubic-bezier(.4,0,.2,1)'
+      : 'none';
+  }
+
+  function onStart(e){
+    const t = e.touches[0];
+    if(t.clientX > EDGE_THRESHOLD) return;
+    const ctx = getActiveContext();
+    if(!ctx) return;
+    tracking = true;
+    axisLocked = null;
+    startX = lastX = t.clientX;
+    startY = t.clientY;
+    lastTime = Date.now();
+    activeFg = ctx.fg;
+    activeBg = ctx.bg;
+    backFn   = ctx.fn;
+    // Prepare bg: slide it in from the left, slightly behind
+    setTransition(activeFg, false);
+    setTransition(activeBg, false);
+    activeBg.classList.replace('off-left','on');
+    activeBg.style.transform = 'translateX(-28%)';
+  }
+
+  function onMove(e){
+    if(!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    // Lock axis on first significant movement
+    if(!axisLocked){
+      if(Math.abs(dx) > 6 || Math.abs(dy) > 6){
+        axisLocked = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
+      }
+    }
+    if(axisLocked === 'v'){ cancel(); return; }
+    if(axisLocked !== 'h') return;
+
+    e.preventDefault();
+    lastTime = Date.now();
+    const clampedDx = Math.max(0, dx);
+    const ratio = clampedDx / window.innerWidth;
+    // fg slides right with finger
+    activeFg.style.transform = `translateX(${clampedDx}px)`;
+    // bg parallax: starts at -28%, moves toward 0
+    const bgX = -28 + ratio * 28;
+    activeBg.style.transform = `translateX(${bgX}%)`;
+    lastX = t.clientX;
+  }
+
+  function onEnd(e){
+    if(!tracking) return;
+    tracking = false;
+    if(!axisLocked || axisLocked === 'v'){ cancel(); return; }
+
+    const dx = lastX - startX;
+    const elapsed = Date.now() - lastTime + 1;
+    const velocity = dx / elapsed;
+    const ratio = dx / window.innerWidth;
+
+    if(dx > 0 && (ratio >= COMPLETE_RATIO || velocity >= VELOCITY_THRESHOLD)){
+      complete();
+    } else {
+      cancel();
+    }
+  }
+
+  function complete(){
+    // Animate fg off-right and bg to full position, then call back function
+    setTransition(activeFg, true);
+    setTransition(activeBg, true);
+    activeFg.style.transform = `translateX(100%)`;
+    activeBg.style.transform = `translateX(0)`;
+    activeFg.addEventListener('transitionend', function handler(){
+      activeFg.removeEventListener('transitionend', handler);
+      // Reset inline styles — backFn will set the classes
+      activeFg.style.transform = '';
+      activeBg.style.transform = '';
+      setTransition(activeFg, true);
+      setTransition(activeBg, true);
+      backFn();
+    }, {once:true});
+  }
+
+  function cancel(){
+    if(!activeFg) return;
+    setTransition(activeFg, true);
+    setTransition(activeBg, true);
+    activeFg.style.transform = '';
+    activeBg.style.transform = 'translateX(-28%)';
+    activeFg.addEventListener('transitionend', function handler(){
+      activeFg.removeEventListener('transitionend', handler);
+      activeBg.style.transform = '';
+      activeBg.classList.replace('on','off-left');
+      setTransition(activeFg, true);
+      setTransition(activeBg, true);
+    }, {once:true});
+    activeFg = activeBg = backFn = null;
+    axisLocked = null;
+  }
+
+  document.addEventListener('touchstart',  onStart, {passive:true});
+  document.addEventListener('touchmove',   onMove,  {passive:false});
+  document.addEventListener('touchend',    onEnd,   {passive:true});
+  document.addEventListener('touchcancel', ()=>{ tracking=false; cancel(); }, {passive:true});
+})();
+
 // ── Init ──────────────────────────────────────────────────────────
 renderProjects();
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
