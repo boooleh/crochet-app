@@ -1042,6 +1042,63 @@ function viewPdf(id){
   document.addEventListener('touchcancel', ()=>{ tracking=false; cancel(); }, {passive:true});
 })();
 
+// ── Tab swipe gesture (Projects ↔ Library) ────────────────────────
+(function(){
+  const MIN_SWIPE  = 50;       // px minimum horizontal distance
+  const VELOCITY   = 0.3;      // px/ms fast-flick threshold
+  const EDGE_GUARD = 40;       // px dead zone on each edge (avoids Android system gestures)
+
+  let tracking = false, startX = 0, startY = 0, lastX = 0, startTime = 0;
+  let axisLocked = null;
+
+  function isTabView(){
+    return !document.getElementById('s-edit').classList.contains('on') &&
+           !document.getElementById('s-detail').classList.contains('on');
+  }
+
+  function onStart(e){
+    if(!isTabView()) return;
+    const t = e.touches[0];
+    // Ignore touches that start in the Android system gesture zones (left/right edges)
+    if(t.clientX < EDGE_GUARD || t.clientX > window.innerWidth - EDGE_GUARD) return;
+    tracking   = true;
+    axisLocked = null;
+    startX = lastX = t.clientX;
+    startY     = t.clientY;
+    startTime  = Date.now();
+  }
+
+  function onMove(e){
+    if(!tracking) return;
+    const t  = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    if(!axisLocked){
+      if(Math.abs(dx) > 8 || Math.abs(dy) > 8)
+        axisLocked = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
+    }
+    if(axisLocked === 'h') e.preventDefault();
+    lastX = t.clientX;
+  }
+
+  function onEnd(){
+    if(!tracking){ tracking = false; return; }
+    tracking = false;
+    if(axisLocked !== 'h') return;
+    const dx       = lastX - startX;
+    const velocity = Math.abs(dx) / (Date.now() - startTime + 1);
+    if(Math.abs(dx) >= MIN_SWIPE || velocity >= VELOCITY){
+      if(dx < 0 && activeTab === 'projects') switchTab('library');
+      else if(dx > 0 && activeTab === 'library') switchTab('projects');
+    }
+  }
+
+  document.addEventListener('touchstart',  onStart, {passive:true});
+  document.addEventListener('touchmove',   onMove,  {passive:false});
+  document.addEventListener('touchend',    onEnd,   {passive:true});
+  document.addEventListener('touchcancel', ()=>{ tracking = false; }, {passive:true});
+})();
+
 // ── Init ──────────────────────────────────────────────────────────
 renderProjects();
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
