@@ -36,7 +36,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
   border-bottom:1px solid var(--bd);padding:0 1.1rem;display:flex;align-items:center;gap:8px;
   position:relative}
 .top-bar-title{font-size:19px;font-weight:800;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  background:linear-gradient(90deg,#7c4dff,#b06aff);-webkit-background-clip:text;
+  background:linear-gradient(90deg,#c49aff,#f0b0e0);-webkit-background-clip:text;
   -webkit-text-fill-color:transparent;background-clip:text}
 .btn-back{background:none;border:none;cursor:pointer;display:flex;align-items:center;font-family:var(--font);padding:4px 6px;flex-shrink:0}
 .btn-back .arrow{font-size:26px;line-height:1;font-weight:300;color:var(--ac);margin-top:-2px}
@@ -116,7 +116,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .detail-photo-wrap{position:relative;width:100%;max-height:240px;overflow:hidden}
 .detail-photo-wrap img{width:100%;object-fit:cover;display:block}
 .detail-hero{padding:2rem 1.25rem;
-  background:linear-gradient(145deg,#7c4dff 0%,#b06aff 60%,#d4a8ff 100%);
+  background:linear-gradient(145deg,#f0b8e8 0%,#d4b8ff 60%,#ede7ff 100%);
   position:relative;overflow:hidden;min-height:130px;
   display:flex;flex-direction:column;justify-content:center;align-items:center}
 .detail-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;
