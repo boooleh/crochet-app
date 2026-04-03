@@ -317,16 +317,15 @@ function renderProjectDetail(p){
         <div class="detail-hero-left">
           <div class="detail-hero-title">${esc(p.name)}</div>
           <div class="detail-hero-badges">
-            <span class="status-pill ${statusCls}">${p.status}</span>
             ${pat?`<span class="hero-info-pill hero-info-pill--link" onclick="goToDetail('pattern',${pat.id},'projects')"><img src="book.png" class="hero-pill-img"> ${esc(pat.name)} ›</span>`:''}
             ${p.yarn?`<span class="hero-info-pill"><img src="yarn-ball.png" class="hero-pill-img"> ${esc(p.yarn)}</span>`:''}
-            ${p.hook?`<span class="hero-info-pill"><img src="crochet.png" class="hero-pill-img"> ${esc(p.hook)}</span>`:''}
+            ${p.hook?`<span class="hero-info-pill hero-info-pill--hook"><img src="crochet.png" class="hero-pill-img"> ${esc(p.hook)}</span>`:''}
           </div>
         </div>
-        <div class="detail-hero-right">
+        <div class="detail-hero-photo-wrap">
           ${photo
             ?`<img class="detail-hero-img" src="${photo}" alt=""/>`
-            :`<div class="detail-hero-photo-placeholder"><svg viewBox="0 0 48 48" fill="none" width="36" height="36" opacity="0.4"><rect x="6" y="10" width="36" height="28" rx="4" stroke="#9b8ec4" stroke-width="2"/><circle cx="17" cy="20" r="3" stroke="#9b8ec4" stroke-width="2"/><path d="M6 32l9-8 7 7 5-4 9 9" stroke="#9b8ec4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`}
+            :`<div class="detail-hero-photo-placeholder"><svg viewBox="0 0 48 48" fill="none" width="40" height="40" opacity="0.35"><rect x="6" y="10" width="36" height="28" rx="4" stroke="#9b8ec4" stroke-width="2"/><circle cx="17" cy="20" r="3" stroke="#9b8ec4" stroke-width="2"/><path d="M6 32l9-8 7 7 5-4 9 9" stroke="#9b8ec4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`}
           <button class="detail-hero-fav${p.fav?' active':''}" onclick="toggleFavDetail()" id="hero-fav-btn">${p.fav?'\u2605':'\u2606'}</button>
         </div>
       </div>
