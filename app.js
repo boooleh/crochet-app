@@ -158,11 +158,17 @@ function triggerDetailEdit(){
 
 // ── Projects list ─────────────────────────────────────────────────
 function toggleProjSearch(){
-  const row=document.getElementById('proj-search-row');
+  const wrap=document.getElementById('proj-search-wrap');
   const input=document.getElementById('proj-search');
-  const visible=row.style.display!=='none';
-  row.style.display=visible?'none':'block';
-  if(!visible){input.focus();}else{input.value='';renderProjects();}
+  const isOpen=wrap.classList.contains('open');
+  if(isOpen){
+    wrap.classList.remove('open');
+    input.value='';
+    renderProjects();
+  } else {
+    wrap.classList.add('open');
+    setTimeout(()=>input.focus(),50);
+  }
 }
 function renderProjects(){
   const q=(document.getElementById('proj-search')?.value||'').toLowerCase();
@@ -181,8 +187,9 @@ function renderProjects(){
     const done=getProjStepsDone(p.id);
     const pct=steps.length?Math.round(done.filter(i=>i<steps.length).length/steps.length*100):0;
     const statusCls=p.status==='Active'?'status-active':p.status==='Done'?'status-done-proj':'status-frogged';
+    const cardCls=p.status==='Active'?'card-active':p.status==='Done'?'card-done':'card-frogged';
     const photo=p.photoKey?localStorage.getItem(p.photoKey):null;
-    return `<div class="card" onclick="goToDetail('project',${p.id},'projects')">
+    return `<div class="card ${cardCls}" onclick="goToDetail('project',${p.id},'projects')">
       ${photo?`<img class="card-photo" src="${photo}" alt=""/>`
               :`<div class="card-photo-placeholder"><svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="44" height="44" opacity="0.45"><rect x="6" y="10" width="36" height="28" rx="4" stroke="#9b8ec4" stroke-width="2"/><circle cx="17" cy="20" r="3" stroke="#9b8ec4" stroke-width="2"/><path d="M6 32l9-8 7 7 5-4 9 9" stroke="#9b8ec4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`}
       <button class="fav-btn${p.fav?' active':''}" onclick="event.stopPropagation();toggleFavProj(${p.id})" aria-label="Favourite">${p.fav?'★':'☆'}</button>
@@ -379,35 +386,26 @@ function renderLibrary(){
   const grid=document.getElementById('lib-grid');
   if(!list.length){grid.innerHTML='<div class="empty">No patterns yet.</div>';return;}
   grid.innerHTML=list.map(p=>{
-    // Get first image from the pattern gallery (reuses existing storage)
     const imgs=getPatternImages(p.id);
     const previewImg=imgs.length?imgs[0]:null;
     const photoHeader=previewImg
-      ?`<img class="card-photo" src="${previewImg}" alt="${esc(p.name)} preview"/>`
-      :`<div class="card-photo-placeholder" style="height:100px;background:${
-          ['linear-gradient(135deg,#f9c6d0,#f7a8b8)',
-           'linear-gradient(135deg,#c6e8f9,#a8d4f7)',
-           'linear-gradient(135deg,#c6f9d4,#a8f0c0)',
-           'linear-gradient(135deg,#f9f0c6,#f7e4a8)',
-           'linear-gradient(135deg,#e8c6f9,#d4a8f7)',
-           'linear-gradient(135deg,#f9dcc6,#f7c4a8)',
-           'linear-gradient(135deg,#c6f9f4,#a8f0e8)'][p.id % 7]}">
-          <img src="${YARN_PLACEHOLDER_IMG}" style="width:56px;height:56px;object-fit:contain"/></div>`;
+      ?`<img class="card-photo-pattern" src="${previewImg}" alt="${esc(p.name)} preview"/>`
+      :`<div class="card-photo-placeholder" style="height:110px">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40" opacity="0.45">
+            <rect x="6" y="10" width="36" height="28" rx="4" stroke="#9b8ec4" stroke-width="2"/>
+            <circle cx="17" cy="20" r="3" stroke="#9b8ec4" stroke-width="2"/>
+            <path d="M6 32l9-8 7 7 5-4 9 9" stroke="#9b8ec4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>`;
     return `<div class="card" onclick="goToDetail('pattern',${p.id},'library')">
       ${photoHeader}
-      <button class="fav-btn" onclick="event.stopPropagation();toggleFavPat(${p.id})">${p.fav?'★':'☆'}</button>
+      <button class="fav-btn${p.fav?' active':''}" onclick="event.stopPropagation();toggleFavPat(${p.id})" aria-label="Favourite">${p.fav?'★':'☆'}</button>
       <div class="card-body">
-        <div class="card-top">
-          <div class="card-title">${esc(p.name)}</div>
-        </div>
+        <div class="card-title">${esc(p.name)}</div>
         <div class="card-badges">
           ${p.category?`<span class="cat-tag">${esc(p.category)}</span>`:''}
-          ${p.difficulty?diffBadge(p.difficulty):''}
+          ${p.difficulty?`<span class="crochet-level-tag">${esc(p.difficulty)}</span>`:''}
           ${p.pdfName?`<span class="pdf-badge">📄 PDF</span>`:''}
-        </div>
-        <div class="card-meta">
-          ${p.yarn?`<span>🧶 ${esc(p.yarn)}</span>`:''}
-          ${p.hook?`<span>🪝 Hook ${esc(p.hook)}</span>`:''}
         </div>
       </div>
     </div>`;
@@ -536,23 +534,41 @@ function buildPatternGallery(p){
 // ── Pattern detail ────────────────────────────────────────────────
 function renderPatternDetail(p){
   const usedIn=projects.filter(pr=>pr.patternId===p.id);
+  const imgs=getPatternImages(p.id);
+  let imgHtml;
+  if(imgs.length){
+    let thumbs='';
+    for(let i=0;i<imgs.length;i++){
+      const active=i===0?' active':'';
+      thumbs+=`<img class="gallery-thumb${active}" src="${imgs[i]}" data-idx="${i}" data-pid="${p.id}" data-src="${imgs[i]}" onclick="galleryThumbClick(this)" alt=""/>`;
+    }
+    thumbs+=`<div class="gallery-thumb-add" onclick="addPatternImage(${p.id})" title="Add image">+</div>`;
+    imgHtml=`<img id="gallery-main-img" class="pat-detail-main-img" src="${imgs[0]}" alt="Pattern preview"/>
+             <div class="gallery-thumbs" style="padding:0 1.25rem 1rem">${thumbs}</div>`;
+  } else {
+    imgHtml=`<div class="pat-detail-placeholder">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="52" height="52" opacity="0.4">
+        <rect x="6" y="10" width="36" height="28" rx="4" stroke="#9b8ec4" stroke-width="2"/>
+        <circle cx="17" cy="20" r="3" stroke="#9b8ec4" stroke-width="2"/>
+        <path d="M6 32l9-8 7 7 5-4 9 9" stroke="#9b8ec4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>`;
+  }
   document.getElementById('d-content').innerHTML=`
     <div style="max-width:640px;margin:0 auto">
-      <div class="detail-hero">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-          <div class="detail-hero-title" style="flex:1">${esc(p.name)}</div>
-          <button onclick="toggleFavDetail()" id="hero-fav-btn"
-            style="background:none;border:none;cursor:pointer;font-size:22px;color:rgba(255,255,255,.85);
-            padding:0;flex-shrink:0;line-height:1;margin-top:1px">${p.fav?'★':'☆'}</button>
-        </div>
-        <div class="detail-hero-badges">
-          ${p.category?`<span class="cat-tag">${esc(p.category)}</span>`:''}
-          ${p.difficulty?diffBadge(p.difficulty):''}
-          ${p.pdfName?`<span class="pdf-badge">📄 PDF</span>`:''}
-        </div>
+      <div class="pat-detail-img-wrap">
+        ${imgHtml}
+        <button onclick="toggleFavDetail()" id="hero-fav-btn" class="fav-btn${p.fav?' active':''}">${p.fav?'★':'☆'}</button>
       </div>
       <div class="detail-body">
-        ${buildPatternGallery(p)}
+        <div class="pat-detail-header">
+          <div class="pat-detail-name">${esc(p.name)}</div>
+          ${(p.category||p.difficulty||p.pdfName)?`<div class="card-badges">
+            ${p.category?`<span class="pat-tag">${esc(p.category)}</span>`:''}
+            ${p.difficulty?diffBadge(p.difficulty):''}
+            ${p.pdfName?`<span class="pdf-badge">📄 PDF</span>`:''}
+          </div>`:''}
+        </div>
         ${(p.yarn||p.hook)?`<div class="section">
           <div class="section-lbl">Materials (pattern defaults)</div>
           <div class="chips">

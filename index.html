@@ -6,13 +6,13 @@
 <meta name="theme-color" content="#e8789a"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
-<meta name="apple-mobile-web-app-title" content="Crochet"/>
+<meta name="apple-mobile-web-app-title" content="Crochet Corner"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="icon" type="image/x-icon" href="favicon.ico"/>
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"/>
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png"/>
 <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png"/>
-<title>My Crochet</title>
+<title>Crochet Corner</title>
 <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
@@ -35,16 +35,16 @@
           <span class="count-lbl" id="proj-count-lbl">0 projects</span>
         </div>
         <div class="filters">
-          <button class="btn-search-icon" onclick="toggleProjSearch()" title="Search">
-            <svg viewBox="0 0 20 20"><circle cx="9" cy="9" r="6"/><line x1="14" y1="14" x2="18" y2="18"/></svg>
-          </button>
-          <select id="proj-status-filter" onchange="renderProjects()">
+          <div class="proj-search-wrap" id="proj-search-wrap">
+            <button class="btn-search-icon" onclick="toggleProjSearch()" id="proj-search-btn" title="Search">
+              <svg viewBox="0 0 20 20"><circle cx="9" cy="9" r="6"/><line x1="14" y1="14" x2="18" y2="18"/></svg>
+            </button>
+            <input type="text" id="proj-search" class="proj-search-input" placeholder="Search projects…" oninput="renderProjects()"/>
+          </div>
+          <select id="proj-status-filter" onchange="renderProjects()" id="proj-status-filter">
             <option value="">All Statuses</option>
             <option>Active</option><option>Done</option><option>Frogged</option>
           </select>
-        </div>
-        <div class="proj-search-row" id="proj-search-row" style="display:none">
-          <input type="text" id="proj-search" placeholder="Search projects…" oninput="renderProjects()"/>
         </div>
         <div class="grid" id="proj-grid"></div>
       </div>

@@ -1,6 +1,6 @@
 {
-  "name": "My Crochet Patterns",
-  "short_name": "My Patterns",
+  "name": "Crochet Corner",
+  "short_name": "Crochet Corner",
   "description": "Save and manage all your crochet patterns",
   "start_url": "/crochet-app/",
   "scope": "/crochet-app/",
