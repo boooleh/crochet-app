@@ -35,13 +35,8 @@
           <span class="count-lbl" id="proj-count-lbl">0 projects</span>
         </div>
         <div class="filters">
-          <div class="proj-search-wrap" id="proj-search-wrap">
-            <button class="btn-search-icon" onclick="toggleProjSearch()" id="proj-search-btn" title="Search">
-              <svg viewBox="0 0 20 20"><circle cx="9" cy="9" r="6"/><line x1="14" y1="14" x2="18" y2="18"/></svg>
-            </button>
-            <input type="text" id="proj-search" class="proj-search-input" placeholder="Search projects…" oninput="renderProjects()"/>
-          </div>
-          <select id="proj-status-filter" onchange="renderProjects()" id="proj-status-filter">
+          <input type="text" id="proj-search" placeholder="Search projects…" oninput="renderProjects()"/>
+          <select id="proj-status-filter" onchange="renderProjects()">
             <option value="">All Statuses</option>
             <option>Active</option><option>Done</option><option>Frogged</option>
           </select>
@@ -82,7 +77,7 @@
     <div class="screen off-right" id="s-detail">
       <div class="top-bar">
         <button class="btn-back" onclick="goBack()">
-          <span class="arrow">‹</span>
+          <img src="chevron-back.svg" alt="Back" class="back-chevron"/>
         </button>
         <span id="back-lbl" style="display:none"></span>
         <img src="CC-logo.png" alt="Crochet Corner" class="top-bar-logo"/>
@@ -97,11 +92,12 @@
     <div class="screen off-right" id="s-edit">
       <div class="top-bar">
         <button class="btn-back" onclick="closeEditScreen()">
-          <span class="arrow">‹</span>
+          <img src="chevron-back.svg" alt="Back" class="back-chevron"/>
         </button>
-        <span id="edit-screen-title" style="display:none"></span>
         <img src="CC-logo.png" alt="Crochet Corner" class="top-bar-logo"/>
-        <button class="btn-header-add" id="edit-save-btn" style="background:var(--ac);border-color:var(--ac);color:#fff;" onclick="submitEditScreen()">Save</button>
+        <button class="btn-header-trash" id="edit-delete-btn" style="display:none" onclick="triggerEditDelete()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
       </div>
       <div id="edit-content" style="max-width:640px;margin:0 auto;padding:1.25rem 1rem 6rem"></div>
     </div>

@@ -663,17 +663,27 @@ function finishProject(id){
 let editFrom = 'projects';
 let editSubmitFn = null; // set before opening edit screen
 
+let editDeleteFn = null;
+
 function openEditScreen(title, formHTML, submitFn, from){
   editFrom = from || activeTab;
   editSubmitFn = submitFn;
-  document.getElementById('edit-screen-title').textContent = title;
+  editDeleteFn = null;
+  const titleEl = document.getElementById('edit-screen-title');
+  if(titleEl) titleEl.textContent = title;
   document.getElementById('edit-content').innerHTML = formHTML;
+  // Always hide delete btn by default; callers can show it
+  document.getElementById('edit-delete-btn').style.display='none';
   // Hide the from-screen, show edit
   const fromEl = editFrom === 'detail' ? document.getElementById('s-detail') : document.getElementById('s-'+editFrom);
   fromEl.classList.replace('on','off-left');
   document.getElementById('s-edit').classList.replace('off-right','on');
   document.getElementById('s-edit').scrollTop = 0;
   document.getElementById('main-tab-bar').style.display='none';
+}
+
+function triggerEditDelete(){
+  if(editDeleteFn) editDeleteFn();
 }
 
 function closeEditScreen(){
@@ -693,7 +703,10 @@ function openNewProject(prePatternId){
 }
 function openEditProject(id){
   const p=projects.find(x=>x.id===id);
-  if(p) openEditScreen('Edit project', projectFormHTML(p), ()=>saveEditProject(id), 'detail');
+  if(!p) return;
+  openEditScreen('Edit project', projectFormHTML(p), ()=>saveEditProject(id), 'detail');
+  editDeleteFn = ()=>deleteProject(id);
+  document.getElementById('edit-delete-btn').style.display='';
 }
 function openNewProjectFromPattern(patternId){
   goBack();
@@ -704,7 +717,10 @@ function openNewPattern(){
 }
 function openEditPattern(id){
   const p=patterns.find(x=>x.id===id);
-  if(p) openEditScreen('Edit pattern', patternFormHTML(p), ()=>saveEditPattern(id), 'detail');
+  if(!p) return;
+  openEditScreen('Edit pattern', patternFormHTML(p), ()=>saveEditPattern(id), 'detail');
+  editDeleteFn = ()=>deletePattern(id);
+  document.getElementById('edit-delete-btn').style.display='';
 }
 // Keep closeModal as no-op for any lingering references
 function closeModal(){}
@@ -759,9 +775,9 @@ function projectFormHTML(p,prePatternId){
     </div>
     <div class="form-row"><label>Notes</label>
       <textarea id="pj-notes" placeholder="Notes specific to this make…">${p?esc(p.notes||''):''}</textarea></div>
-    ${p?`<div style="margin-top:2rem;padding-top:1.25rem;border-top:1px solid var(--bd)">
-      <button class="btn-del" style="width:100%;justify-content:center;padding:12px" onclick="deleteProject(${p.id})">🗑 Delete project</button>
-    </div>`:''}
+    <div class="edit-save-footer">
+      <button class="btn-save-bottom" onclick="submitEditScreen()">${p?'Save project':'Create project'}</button>
+    </div>
   `;
 }
 
@@ -848,23 +864,6 @@ function deleteProject(id){
 function patternFormHTML(p){
   const cats=['Amigurumi','Blanket','Hat','Shawl','Bag','Clothing','Home decor','Other'];
   const diffs=['Easy','Medium','Hard'];
-  const pdfSection=p&&p.pdfName
-    ?`<div class="form-row"><label>Pattern PDF</label>
-       <div class="pdf-attached"><span>📄 ${esc(p.pdfName)}</span>
-         <button class="btn-pdf-open" style="padding:6px 12px;font-size:13px" onclick="viewPdf(${p.id})" type="button">Open</button>
-         <button class="pdf-remove" onclick="removePdf(${p.id})" type="button">✕</button>
-       </div></div>`
-    :`<div class="form-row"><label>Pattern PDF</label>
-       <div class="pdf-drop" id="pdf-dz" onclick="document.getElementById('pdf-fi').click()"
-         ondragover="event.preventDefault();this.classList.add('drag-over')"
-         ondragleave="this.classList.remove('drag-over')" ondrop="handlePdfDrop(event)">
-         <span class="pdf-icon">📄</span><p>Click or drag &amp; drop a PDF</p>
-       </div>
-       <input type="file" id="pdf-fi" accept="application/pdf" style="display:none" onchange="handlePdfSelect(event)"/>
-       <div id="pdf-preview" style="display:none" class="pdf-attached">
-         <span id="pdf-preview-name"></span>
-         <button class="pdf-remove" onclick="clearPdfPreview()" type="button">✕</button>
-       </div></div>`;
   return `
     <div class="form-row"><label>Pattern name</label>
       <input id="f-name" value="${p?esc(p.name):''}" placeholder="e.g. Bunny amigurumi"/></div>
@@ -905,10 +904,9 @@ function patternFormHTML(p){
         </div>`;
       })()}
     </div>`:''}
-    ${pdfSection}
-    ${p?`<div style="margin-top:2rem;padding-top:1.25rem;border-top:1px solid var(--bd)">
-      <button class="btn-del" style="width:100%;justify-content:center;padding:12px" onclick="deletePattern(${p.id})">🗑 Delete pattern</button>
-    </div>`:''}
+    <div class="edit-save-footer">
+      <button class="btn-save-bottom" onclick="submitEditScreen()">${p?'Save pattern':'Add pattern'}</button>
+    </div>
   `;
 }
 function saveNewPattern(){

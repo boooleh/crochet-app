@@ -1,4 +1,4 @@
-const CACHE = 'crochet-app-v1';
+const CACHE = 'crochet-app-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -22,6 +22,13 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Network-first for HTML so updates are always picked up
+  if (e.request.destination === 'document') {
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match(e.request))
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('/index.html')))
   );
