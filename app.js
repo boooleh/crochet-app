@@ -326,8 +326,8 @@ function renderProjectDetail(p){
           ${photo
             ?`<img class="detail-hero-img" src="${photo}" alt=""/>`
             :`<div class="detail-hero-photo-placeholder"><svg viewBox="0 0 48 48" fill="none" width="40" height="40" opacity="0.35"><rect x="6" y="10" width="36" height="28" rx="4" stroke="#9b8ec4" stroke-width="2"/><circle cx="17" cy="20" r="3" stroke="#9b8ec4" stroke-width="2"/><path d="M6 32l9-8 7 7 5-4 9 9" stroke="#9b8ec4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`}
-          <button class="detail-hero-fav${p.fav?' active':''}" onclick="toggleFavDetail()" id="hero-fav-btn">${p.fav?'\u2605':'\u2606'}</button>
         </div>
+        <button class="detail-hero-fav${p.fav?' active':''}" onclick="toggleFavDetail()" id="hero-fav-btn">${p.fav?'\u2605':'\u2606'}</button>
       </div>
       <div class="detail-body">
         ${p.notes?`<div class="section">
@@ -769,6 +769,15 @@ function saveNewProject(){
   const stepsEl=document.getElementById('pj-steps');
   const steps=stepsEl?stepsEl.value.split('\n').filter(l=>l.trim()):[];
   const id=nextProjId++;
+  // Inherit first image from selected pattern
+  let photoKey=null;
+  if(patId){
+    const patImgs=getPatternImages(parseInt(patId));
+    if(patImgs.length){
+      photoKey='crochet_photo_proj_'+id;
+      localStorage.setItem(photoKey,patImgs[0]);
+    }
+  }
   projects.push({id,name,
     patternId:patId?parseInt(patId):null,
     steps:patId?[]:steps,
@@ -778,7 +787,7 @@ function saveNewProject(){
     startDate:document.getElementById('pj-start').value||null,
     endDate:document.getElementById('pj-end').value||null,
     notes:document.getElementById('pj-notes').value.trim(),
-    fav:false,photoKey:null});
+    fav:false,photoKey});
   saveProjects();closeEditScreen();renderProjects();
 }
 function saveEditProject(id){
