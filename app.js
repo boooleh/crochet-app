@@ -182,8 +182,7 @@ function renderProjects(){
   if(!list.length){grid.innerHTML='<div class="empty">No projects yet — tap + New to start one!</div>';return;}
   grid.innerHTML=list.map(p=>{
     const pat=patterns.find(x=>x.id===p.patternId);
-    const steps=pat?(pat.notes||'').split('\n').filter(l=>l.trim()):
-      (p.steps||[]);
+    const steps=pat?getPatternSteps(pat):(p.steps||[]);
     const done=getProjStepsDone(p.id);
     const pct=steps.length?Math.round(done.filter(i=>i<steps.length).length/steps.length*100):0;
     const statusCls=p.status==='Active'?'status-active':p.status==='Done'?'status-done-proj':'status-frogged';
@@ -228,7 +227,7 @@ function toggleStepSection(secId){
 }
 function renderProjectDetail(p){
   const pat=patterns.find(x=>x.id===p.patternId);
-  const lines=pat?(pat.notes||'').split('\n').filter(l=>l.trim()):(p.steps||[]);
+  const lines=pat?getPatternSteps(pat):(p.steps||[]);
   const hasSteps=lines.length>0;
   const done=getProjStepsDone(p.id);
   const total=lines.length;
@@ -577,9 +576,21 @@ function renderPatternDetail(p){
           </div>
         </div>`:''}
         ${p.notes?`<div class="section">
-          <div class="section-lbl">Steps &amp; notes</div>
+          <div class="section-lbl">Notes</div>
           <div style="background:rgba(255,255,255,.7);border-radius:0 var(--rl) var(--rl) 0;padding:10px 14px 12px;
             font-size:14px;line-height:1.7;white-space:pre-wrap;border-left:3px solid var(--ac)">${esc(p.notes)}</div>
+        </div>`:''}
+        ${(p.sections&&p.sections.length&&p.sections.some(s=>s.steps&&s.steps.some(st=>st.trim())))?`<div class="section">
+          <div class="section-lbl">Pattern steps</div>
+          ${p.sections.map(sec=>`
+            <div style="margin-bottom:10px">
+              ${sec.title?`<div style="font-size:12px;font-weight:800;color:var(--tx2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">${esc(sec.title)}</div>`:''}
+              ${sec.steps.filter(st=>st.trim()).map((st,i)=>`
+                <div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd)">
+                  <span style="font-size:11px;font-weight:700;color:var(--ac);flex-shrink:0;min-width:26px;padding-top:2px">R${i+1}</span>
+                  <span style="font-size:14px;color:var(--tx);line-height:1.5">${esc(st)}</span>
+                </div>`).join('')}
+            </div>`).join('')}
         </div>`:''}
         ${usedIn.length?`<div class="section">
           <div class="section-lbl">Used in projects</div>
@@ -617,7 +628,7 @@ function resetProjSteps(id){saveProjStepsDone(id,[]);refreshProjSteps(id);}
 function refreshProjSteps(id){
   const p=projects.find(x=>x.id===id);if(!p)return;
   const pat=patterns.find(x=>x.id===p.patternId);
-  const lines=pat?(pat.notes||'').split('\n').filter(l=>l.trim()):(p.steps||[]);
+  const lines=pat?getPatternSteps(pat):(p.steps||[]);
   const done=getProjStepsDone(id),total=lines.length;
   const doneCount=done.filter(i=>i<total).length;
   const pct=total?Math.round(doneCount/total*100):0;
@@ -632,7 +643,7 @@ function refreshProjSteps(id){
   // refresh section dots
   const p2=projects.find(x=>x.id===id);if(!p2)return;
   const pat2=patterns.find(x=>x.id===p2.patternId);
-  const lines2=pat2?(pat2.notes||'').split('\n').filter(l=>l.trim()):(p2.steps||[]);
+  const lines2=pat2?getPatternSteps(pat2):(p2.steps||[]);
   document.querySelectorAll('[id^="sec-'+id+'-"]').forEach(sec=>{
     const dot=sec.querySelector('.steps-section-dot');if(!dot)return;
     const stepRows=sec.querySelectorAll('.step-row');
@@ -664,6 +675,88 @@ let editFrom = 'projects';
 let editSubmitFn = null; // set before opening edit screen
 
 let editDeleteFn = null;
+let editPatternSections = []; // live state for the pattern step builder
+
+// ── Pattern step builder helpers ──────────────────────────────────
+function getPatternSteps(pat){
+  // Returns a flat array of step strings from a pattern (sections or legacy notes)
+  if(pat && pat.sections && pat.sections.length){
+    return pat.sections.flatMap(s=>(s.steps||[]).filter(st=>st&&st.trim()));
+  }
+  return (pat&&pat.notes||'').split('\n').filter(l=>l.trim());
+}
+
+function renderPatternSectionsUI(){
+  const wrap=document.getElementById('pstep-sections-wrap');
+  if(!wrap)return;
+  wrap.innerHTML=editPatternSections.map((sec,si)=>`
+    <div class="pstep-section">
+      <div class="pstep-section-header">
+        <input class="pstep-section-title" type="text" placeholder="Section name (e.g. Head, Body…)"
+          value="${esc(sec.title)}" oninput="editPatternSections[${si}].title=this.value"/>
+        <button class="pstep-sec-del" onclick="removePatternSection(${si})" title="Remove section">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+        <svg class="pstep-section-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="pstep-section-body">
+        <div class="pstep-rows">
+          ${sec.steps.map((step,ri)=>`
+            <div class="pstep-row">
+              <span class="pstep-row-num">R${ri+1}</span>
+              <input class="pstep-row-input" type="text" placeholder="Describe this step…"
+                value="${esc(step)}" oninput="editPatternSections[${si}].steps[${ri}]=this.value"/>
+              <button class="pstep-row-del" onclick="removePatternStep(${si},${ri})" title="Remove step">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>`).join('')}
+        </div>
+        <button class="pstep-add-row" onclick="addPatternStep(${si})">+ Add step</button>
+      </div>
+    </div>`).join('');
+}
+
+function addPatternSection(){
+  editPatternSections.push({title:'',steps:['']});
+  renderPatternSectionsUI();
+}
+function removePatternSection(si){
+  editPatternSections.splice(si,1);
+  if(!editPatternSections.length) editPatternSections.push({title:'',steps:['']});
+  renderPatternSectionsUI();
+}
+function movePatternSection(si,dir){
+  const newIdx=si+dir;
+  if(newIdx<0||newIdx>=editPatternSections.length) return;
+  const tmp=editPatternSections[si];
+  editPatternSections[si]=editPatternSections[newIdx];
+  editPatternSections[newIdx]=tmp;
+  renderPatternSectionsUI();
+}
+function addPatternStep(si){
+  editPatternSections[si].steps.push('');
+  renderPatternSectionsUI();
+}
+function removePatternStep(si,ri){
+  editPatternSections[si].steps.splice(ri,1);
+  if(!editPatternSections[si].steps.length) editPatternSections[si].steps.push('');
+  renderPatternSectionsUI();
+}
+function getPatternSectionsData(){
+  // Read current values directly from DOM (most up-to-date)
+  const wrap=document.getElementById('pstep-sections-wrap');
+  if(!wrap)return[];
+  const result=[];
+  wrap.querySelectorAll('.pstep-section').forEach((secEl,si)=>{
+    const title=secEl.querySelector('.pstep-section-title')?.value||'';
+    const steps=[];
+    secEl.querySelectorAll('.pstep-row-input').forEach(inp=>{
+      if(inp.value.trim())steps.push(inp.value.trim());
+    });
+    result.push({title,steps});
+  });
+  return result;
+}
 
 function openEditScreen(title, formHTML, submitFn, from){
   editFrom = from || activeTab;
@@ -861,10 +954,28 @@ function deleteProject(id){
 }
 
 // ── Pattern form ──────────────────────────────────────────────────
+function sectionsToText(sections){
+  if(!sections||!sections.length) return '';
+  return sections.map(sec=>{
+    const lines=[];
+    if(sec.title) lines.push(sec.title+':');
+    lines.push(...(sec.steps||[]).filter(s=>s.trim()));
+    return lines.join('\n');
+  }).join('\n\n').trim();
+}
+function textToSections(text){
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length) return [{title:'',steps:['']}];
+  return [{title:'',steps:lines}];
+}
 function patternFormHTML(p){
   const cats=['Amigurumi','Blanket','Hat','Shawl','Bag','Clothing','Home decor','Other'];
   const diffs=['Easy','Medium','Hard'];
+  const hasSections=p&&p.sections&&p.sections.length&&p.sections.some(s=>s.steps&&s.steps.some(st=>st.trim()));
+  const stepsText=p?(hasSections?sectionsToText(p.sections):(p.notes||'')):'';
+  const notesText=p?(hasSections?(p.notes||''):''):'';
   return `
+    <div class="form-section-lbl">Pattern details</div>
     <div class="form-row"><label>Pattern name</label>
       <input id="f-name" value="${p?esc(p.name):''}" placeholder="e.g. Bunny amigurumi"/></div>
     <div class="form-row-2">
@@ -879,31 +990,60 @@ function patternFormHTML(p){
       <div class="form-row" style="margin-bottom:0"><label>Default hook</label>
         <input id="f-hook" value="${p?esc(p.hook||''):''}" placeholder="e.g. 4.0mm"/></div>
     </div>
-    <div class="form-row"><label>Steps / notes (one per line)</label>
-      <textarea id="f-notes" placeholder="Each line becomes a tappable step in projects…" style="min-height:140px">${p?esc(p.notes||''):''}</textarea></div>
-    ${p?`<div class="form-row"><label>Photos</label>
-      ${(()=>{
-        const imgs=getPatternImages(p.id);
-        const thumbs=imgs.map((src,i)=>`
-          <div style="position:relative;display:inline-block">
-            <img src="${src}" style="width:72px;height:72px;object-fit:cover;border-radius:var(--r);display:block"/>
-            <button onclick="removePatternImageInEdit(${p.id},${i})"
-              style="position:absolute;top:-6px;right:-6px;background:#fff;border:1.5px solid var(--bd);
-              border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;
-              display:flex;align-items:center;justify-content:center;color:var(--tx2);padding:0">✕</button>
-          </div>`).join('');
-        return `<div id="edit-photo-section" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          ${thumbs}
-          <div onclick="addPatternImageInEdit(${p.id})"
-            style="width:72px;height:72px;border:2px dashed var(--bd2);border-radius:var(--r);
-            display:flex;flex-direction:column;align-items:center;justify-content:center;
-            gap:4px;cursor:pointer;background:var(--bg2);transition:background .15s;font-size:22px;color:var(--tx2)">
-            📷
-            <span style="font-size:10px;font-weight:700;color:var(--tx2)">Add</span>
+    <div class="form-section-lbl">Notes</div>
+    <div class="form-row">
+      <textarea id="f-notes" placeholder="General notes about this pattern…" style="min-height:100px">${esc(notesText)}</textarea>
+    </div>
+    <div class="form-section-lbl">Pattern PDF</div>
+    <div class="form-row">
+      ${p&&p.pdfName
+        ?`<div class="pdf-attached-row" id="pdf-preview" style="display:flex">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:#c2185b"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span id="pdf-preview-name" style="flex:1;font-size:13px;font-weight:700;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.pdfName)}</span>
+            <button onclick="removePdf(${p.id})" style="border:none;background:none;cursor:pointer;color:var(--tx2);font-size:18px;line-height:1;padding:0">✕</button>
+          </div>`
+        :`<div class="pattern-media-drop" id="pdf-dz" onclick="document.getElementById('pat-media-fi').click()"
+              ondragover="event.preventDefault();this.classList.add('drag-over')"
+              ondragleave="this.classList.remove('drag-over')"
+              ondrop="handlePatMediaDrop(event)">
+            <img src="image-01.svg" width="32" height="32" alt="" style="opacity:0.55;display:block"/>
+            <span style="font-size:12px;color:var(--tx)">Add image or PDF</span>
           </div>
-        </div>`;
-      })()}
-    </div>`:''}
+          <div id="pdf-preview" style="display:none;align-items:center;gap:10px;padding:12px 14px;
+              border:1.5px solid #dadfff;border-radius:var(--r);background:#fff;margin-top:0">
+            <span id="pdf-preview-name" style="font-size:13px;font-weight:700;flex:1;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
+            <button onclick="clearPdfPreview()" style="border:none;background:none;cursor:pointer;color:var(--tx2);font-size:18px;line-height:1;padding:0">✕</button>
+          </div>`}
+      <input type="file" id="pat-media-fi" accept="image/*,application/pdf" style="display:none" onchange="handlePatMediaSelect(event)"/>
+    </div>
+    <div class="form-section-lbl">Pattern steps</div>
+    <div class="form-row">
+      <textarea id="f-steps" placeholder="Write your pattern steps here…" style="min-height:140px">${esc(stepsText)}</textarea>
+    </div>
+    ${p?`<div class="form-section-lbl" style="margin-top:1.5rem">Photos</div>
+      <div class="form-row">
+        ${(()=>{
+          const imgs=getPatternImages(p.id);
+          const thumbs=imgs.map((src,i)=>`
+            <div style="position:relative;display:inline-block">
+              <img src="${src}" style="width:72px;height:72px;object-fit:cover;border-radius:var(--r);display:block"/>
+              <button onclick="removePatternImageInEdit(${p.id},${i})"
+                style="position:absolute;top:-6px;right:-6px;background:#fff;border:1.5px solid var(--bd);
+                border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;
+                display:flex;align-items:center;justify-content:center;color:var(--tx2);padding:0">✕</button>
+            </div>`).join('');
+          return `<div id="edit-photo-section" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            ${thumbs}
+            <div onclick="addPatternImageInEdit(${p.id})"
+              style="width:72px;height:72px;border:2px dashed var(--bd2);border-radius:var(--r);
+              display:flex;flex-direction:column;align-items:center;justify-content:center;
+              gap:4px;cursor:pointer;background:var(--bg2);transition:background .15s;font-size:22px;color:var(--tx2)">
+              📷
+              <span style="font-size:10px;font-weight:700;color:var(--tx2)">Add</span>
+            </div>
+          </div>`;
+        })()}
+      </div>`:''}
     <div class="edit-save-footer">
       <button class="btn-save-bottom" onclick="submitEditScreen()">${p?'Save pattern':'Add pattern'}</button>
     </div>
@@ -913,15 +1053,18 @@ function saveNewPattern(){
   const name=document.getElementById('f-name').value.trim();
   if(!name){document.getElementById('f-name').style.borderColor='#e24b4a';return;}
   const id=nextPatId++;
+  const sections=textToSections(document.getElementById('f-steps').value.trim());
   patterns.push({id,name,
     category:document.getElementById('f-cat').value,
     difficulty:document.getElementById('f-diff').value,
     yarn:document.getElementById('f-yarn').value.trim(),
     hook:document.getElementById('f-hook').value.trim(),
     notes:document.getElementById('f-notes').value.trim(),
+    sections,
     fav:false,pdfName:pendingPdfName||null});
   if(pendingPdfData)localStorage.setItem('crochet_pdf_'+id,pendingPdfData);
   pendingPdfData=null;pendingPdfName=null;
+  if(pendingPatternImageData){savePatternImages(id,[pendingPatternImageData]);pendingPatternImageData=null;}
   savePatterns();closeEditScreen();renderLibrary();
 }
 function saveEditPattern(id){
@@ -933,6 +1076,7 @@ function saveEditPattern(id){
   p.yarn=document.getElementById('f-yarn').value.trim();
   p.hook=document.getElementById('f-hook').value.trim();
   p.notes=document.getElementById('f-notes').value.trim();
+  p.sections=textToSections(document.getElementById('f-steps').value.trim());
   if(pendingPdfData){localStorage.setItem('crochet_pdf_'+id,pendingPdfData);p.pdfName=pendingPdfName;pendingPdfData=null;pendingPdfName=null;}
   savePatterns();
   if(currentDetailId===id&&currentDetailType==='pattern') renderPatternDetail(p);
@@ -955,8 +1099,29 @@ function deletePattern(id){
 }
 
 // ── PDF ───────────────────────────────────────────────────────────
-let pendingPdfData=null,pendingPdfName=null;
+let pendingPdfData=null,pendingPdfName=null,pendingPatternImageData=null;
 function handlePdfSelect(e){const f=e.target.files[0];if(f)loadPdf(f);}
+function handlePatMediaSelect(e){
+  const f=e.target.files[0];if(!f)return;
+  if(f.type==='application/pdf')loadPdf(f);
+  else if(f.type.startsWith('image/'))loadPatternImage(f);
+}
+function handlePatMediaDrop(e){
+  e.preventDefault();
+  const dz=document.getElementById('pdf-dz');if(dz)dz.classList.remove('drag-over');
+  const f=e.dataTransfer.files[0];if(!f)return;
+  if(f.type==='application/pdf')loadPdf(f);
+  else if(f.type.startsWith('image/'))loadPatternImage(f);
+}
+function loadPatternImage(file){
+  const r=new FileReader();
+  r.onload=ev=>{
+    pendingPatternImageData=ev.target.result;
+    const dz=document.getElementById('pdf-dz'),pr=document.getElementById('pdf-preview'),nm=document.getElementById('pdf-preview-name');
+    if(dz)dz.style.display='none';if(pr)pr.style.display='flex';if(nm)nm.textContent='🖼 '+file.name;
+  };
+  r.readAsDataURL(file);
+}
 function handlePdfDrop(e){
   e.preventDefault();document.getElementById('pdf-dz').classList.remove('drag-over');
   const f=e.dataTransfer.files[0];if(f&&f.type==='application/pdf')loadPdf(f);
@@ -971,7 +1136,7 @@ function loadPdf(file){
   r.readAsDataURL(file);
 }
 function clearPdfPreview(){
-  pendingPdfData=null;pendingPdfName=null;
+  pendingPdfData=null;pendingPdfName=null;pendingPatternImageData=null;
   const dz=document.getElementById('pdf-dz'),pr=document.getElementById('pdf-preview');
   if(dz)dz.style.display='';if(pr)pr.style.display='none';
 }
