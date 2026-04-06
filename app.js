@@ -123,9 +123,10 @@ function goToDetail(type, id, from){
   document.getElementById('s-detail').scrollTop=0;
   document.getElementById('s-'+detailFrom).classList.replace('on','off-left');
   document.getElementById('s-detail').classList.replace('off-right','on');
+  history.pushState({screen:'detail'}, '');
   document.getElementById('main-tab-bar').style.display='none';
 }
-function goBack(){
+function _goBackUI(){
   document.getElementById('s-detail').classList.replace('on','off-right');
   document.getElementById('s-'+detailFrom).classList.replace('off-left','on');
   const eb=document.getElementById('d-edit-btn');
@@ -137,6 +138,11 @@ function goBack(){
   activeTab=detailFrom;
   if(detailFrom==='projects') renderProjects();
   else if(detailFrom==='library') renderLibrary();
+}
+function goBack(){
+  _historyManaged = true;
+  _goBackUI();
+  history.back();
 }
 function toggleFavDetail(){
   if(currentDetailType==='project'){
@@ -676,6 +682,7 @@ let editSubmitFn = null; // set before opening edit screen
 
 let editDeleteFn = null;
 let editPatternSections = []; // live state for the pattern step builder
+let _historyManaged = false; // prevents popstate from double-handling UI-triggered back navigations
 
 // ── Pattern step builder helpers ──────────────────────────────────
 function getPatternSteps(pat){
@@ -771,6 +778,7 @@ function openEditScreen(title, formHTML, submitFn, from){
   const fromEl = editFrom === 'detail' ? document.getElementById('s-detail') : document.getElementById('s-'+editFrom);
   fromEl.classList.replace('on','off-left');
   document.getElementById('s-edit').classList.replace('off-right','on');
+  history.pushState({screen:'edit'}, '');
   document.getElementById('s-edit').scrollTop = 0;
   document.getElementById('main-tab-bar').style.display='none';
 }
@@ -779,12 +787,17 @@ function triggerEditDelete(){
   if(editDeleteFn) editDeleteFn();
 }
 
-function closeEditScreen(){
+function _closeEditScreenUI(){
   document.getElementById('s-edit').classList.replace('on','off-right');
   const fromEl = editFrom === 'detail' ? document.getElementById('s-detail') : document.getElementById('s-'+editFrom);
   fromEl.classList.replace('off-left','on');
   if(editFrom !== 'detail') document.getElementById('main-tab-bar').style.display='';
   pendingPdfData=null; pendingPdfName=null;
+}
+function closeEditScreen(){
+  _historyManaged = true;
+  _closeEditScreenUI();
+  history.back();
 }
 
 function submitEditScreen(){
@@ -945,12 +958,14 @@ function deleteProject(id){
   projects=projects.filter(x=>x.id!==id);
   saveProjects();
   // Close edit screen first, then detail, then land on list
+  _historyManaged = true;
   document.getElementById('s-edit').classList.replace('on','off-right');
   document.getElementById('s-detail').classList.replace('off-left','on');
   setTimeout(()=>{
-    goBack(); // detail → list
+    _goBackUI(); // detail → list (no history.back here; history.go(-2) handles both)
     renderProjects();
   }, 0);
+  history.go(-2); // pop both edit and detail history entries
 }
 
 // ── Pattern form ──────────────────────────────────────────────────
@@ -1090,12 +1105,14 @@ function deletePattern(id){
   patterns=patterns.filter(x=>x.id!==id);
   savePatterns();
   // Close edit screen, then detail, then land on library
+  _historyManaged = true;
   document.getElementById('s-edit').classList.replace('on','off-right');
   document.getElementById('s-detail').classList.replace('off-left','on');
   setTimeout(()=>{
-    goBack(); // detail → library
+    _goBackUI(); // detail → library (no history.back here; history.go(-2) handles both)
     renderLibrary();
   }, 0);
+  history.go(-2); // pop both edit and detail history entries
 }
 
 // ── PDF ───────────────────────────────────────────────────────────
@@ -1353,6 +1370,22 @@ function viewPdf(id){
   document.addEventListener('touchend',    onEnd,   {passive:true});
   document.addEventListener('touchcancel', ()=>{ tracking = false; }, {passive:true});
 })();
+
+// ── OS back-gesture / hardware back button support ────────────────
+// Replace the page-load history entry so the app starts at a known state
+history.replaceState({screen:'home'}, '');
+
+// When the OS back gesture or hardware back button fires, popstate is triggered.
+// If the app already handled back via its own UI (flag is set), skip.
+// Otherwise, perform the appropriate in-app back navigation.
+window.addEventListener('popstate', function(){
+  if(_historyManaged){ _historyManaged = false; return; }
+  const editOn   = document.getElementById('s-edit').classList.contains('on');
+  const detailOn = document.getElementById('s-detail').classList.contains('on');
+  if(editOn)       _closeEditScreenUI();
+  else if(detailOn) _goBackUI();
+  // On home screen: no history entry left — OS closes the app naturally
+});
 
 // ── Init ──────────────────────────────────────────────────────────
 renderProjects();
