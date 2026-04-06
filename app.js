@@ -421,6 +421,51 @@ function toggleFavPat(id){
 }
 
 // Add / remove images from within the edit screen — refreshes the photos section in place
+// ── Pending images for new-pattern form (no ID yet) ───────────────
+let pendingPatternImages = [];
+function addNewPatternImage(){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*'; inp.multiple=true;
+  inp.onchange=e=>{
+    const files=Array.from(e.target.files); if(!files.length) return;
+    let loaded=0;
+    files.forEach(file=>{
+      const r=new FileReader();
+      r.onload=ev=>{
+        pendingPatternImages.push(ev.target.result);
+        loaded++;
+        if(loaded===files.length) refreshNewPatternPhotos();
+      };
+      r.readAsDataURL(file);
+    });
+  };
+  inp.click();
+}
+function removeNewPatternImage(idx){
+  pendingPatternImages.splice(idx,1);
+  refreshNewPatternPhotos();
+}
+function refreshNewPatternPhotos(){
+  const section=document.getElementById('edit-photo-section'); if(!section) return;
+  const thumbs=pendingPatternImages.map((src,i)=>`
+    <div style="position:relative;display:inline-block">
+      <img src="${src}" style="width:72px;height:72px;object-fit:cover;border-radius:var(--r);display:block"/>
+      <button onclick="removeNewPatternImage(${i})"
+        style="position:absolute;top:-6px;right:-6px;background:#fff;border:1.5px solid var(--bd);
+        border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;
+        display:flex;align-items:center;justify-content:center;color:var(--tx2);padding:0">✕</button>
+    </div>`).join('');
+  section.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    ${thumbs}
+    <div onclick="addNewPatternImage()"
+      style="width:72px;height:72px;border:2px dashed var(--bd2);border-radius:var(--r);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:4px;cursor:pointer;background:var(--bg2);transition:background .15s;font-size:22px;color:var(--tx2)">
+      📷<span style="font-size:10px;font-weight:700;color:var(--tx2)">Add</span>
+    </div>
+  </div>`;
+}
+
 function addPatternImageInEdit(patId){
   const inp=document.createElement('input');
   inp.type='file'; inp.accept='image/*'; inp.multiple=true;
@@ -507,11 +552,16 @@ function removePatternImage(patId,idx){
   const p=patterns.find(x=>x.id===patId);
   if(p) renderPatternDetail(p);
 }
+let _activeGalleryIdx = 0; // tracks which image is currently shown in detail view
+let _activeGalleryPatId = null;
+
 function galleryThumbClick(el){
   const pid=parseInt(el.getAttribute('data-pid'));
   const idx=parseInt(el.getAttribute('data-idx'));
   const imgs=getPatternImages(pid);
   const src=imgs[idx];
+  _activeGalleryIdx = idx;
+  _activeGalleryPatId = pid;
   setActiveGalleryImg(src);
 }
 function setActiveGalleryImg(src){
@@ -519,6 +569,60 @@ function setActiveGalleryImg(src){
   if(main){ main.src=src; }
   document.querySelectorAll('.gallery-thumb').forEach(t=>{
     t.classList.toggle('active', t.getAttribute('data-src')===src);
+  });
+}
+
+// ── Full-screen image lightbox ─────────────────────────────────────
+function openImageLightbox(patId, startIdx){
+  const imgs = getPatternImages(patId);
+  if(!imgs.length) return;
+  let idx = startIdx || 0;
+
+  // Build overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'img-lightbox';
+  overlay.innerHTML = `
+    <button class="lightbox-close" onclick="document.getElementById('img-lightbox').remove()">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="lightbox-img-wrap">
+      <img class="lightbox-img" id="lightbox-main-img" src="${imgs[idx]}" alt=""/>
+    </div>
+    ${imgs.length > 1 ? `<div class="lightbox-dots" id="lightbox-dots"></div>` : ''}
+  `;
+  document.body.appendChild(overlay);
+
+  function renderDots(){
+    const dotsEl = document.getElementById('lightbox-dots');
+    if(!dotsEl) return;
+    dotsEl.innerHTML = imgs.map((_,i) =>
+      `<span class="lightbox-dot${i===idx?' active':''}" onclick="lightboxGoTo(${i})"></span>`
+    ).join('');
+  }
+  window.lightboxGoTo = function(i){
+    idx = (i + imgs.length) % imgs.length;
+    document.getElementById('lightbox-main-img').src = imgs[idx];
+    renderDots();
+  };
+  renderDots();
+
+  // Swipe gesture
+  let sx=0, sy=0, dragging=false;
+  overlay.addEventListener('touchstart', e=>{
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY; dragging=true;
+  },{passive:true});
+  overlay.addEventListener('touchend', e=>{
+    if(!dragging) return; dragging=false;
+    const dx=e.changedTouches[0].clientX - sx;
+    const dy=e.changedTouches[0].clientY - sy;
+    if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40){
+      if(imgs.length > 1) lightboxGoTo(dx < 0 ? idx+1 : idx-1);
+    }
+  },{passive:true});
+
+  // Close on backdrop tap (not on image)
+  overlay.addEventListener('click', e=>{
+    if(e.target === overlay) overlay.remove();
   });
 }
 
@@ -532,12 +636,12 @@ function buildPatternGallery(p){
     const active=i===0?' active':'';
     thumbs+='<img class="gallery-thumb'+active+'" src="'+imgs[i]+'" data-idx="'+i+'" data-pid="'+p.id+'" data-src="'+imgs[i]+'" onclick="galleryThumbClick(this)" alt=""/>';
   }
-  thumbs+='<div class="gallery-thumb-add" onclick="addPatternImage('+p.id+')" title="Add image">+</div>';
-  return '<div class="gallery-wrap"><img id="gallery-main-img" class="gallery-main" src="'+imgs[0]+'" alt="Pattern preview"/><div class="gallery-thumbs">'+thumbs+'</div></div>';
+  return '<div class="gallery-wrap"><img id="gallery-main-img" class="gallery-main" src="'+imgs[0]+'" alt="Pattern preview" onclick="openImageLightbox('+p.id+',0)" style="cursor:zoom-in"/><div class="gallery-thumbs">'+thumbs+'</div></div>';
 }
 
 // ── Pattern detail ────────────────────────────────────────────────
 function renderPatternDetail(p){
+  _activeGalleryIdx = 0; _activeGalleryPatId = p.id;
   const usedIn=projects.filter(pr=>pr.patternId===p.id);
   const imgs=getPatternImages(p.id);
   let imgHtml;
@@ -547,8 +651,7 @@ function renderPatternDetail(p){
       const active=i===0?' active':'';
       thumbs+=`<img class="gallery-thumb${active}" src="${imgs[i]}" data-idx="${i}" data-pid="${p.id}" data-src="${imgs[i]}" onclick="galleryThumbClick(this)" alt=""/>`;
     }
-    thumbs+=`<div class="gallery-thumb-add" onclick="addPatternImage(${p.id})" title="Add image">+</div>`;
-    imgHtml=`<img id="gallery-main-img" class="pat-detail-main-img" src="${imgs[0]}" alt="Pattern preview"/>
+    imgHtml=`<img id="gallery-main-img" class="pat-detail-main-img" src="${imgs[0]}" alt="Pattern preview" onclick="openImageLightbox(${p.id},_activeGalleryIdx)" style="cursor:zoom-in"/>
              <div class="gallery-thumbs" style="padding:0 1.25rem 1rem">${thumbs}</div>`;
   } else {
     imgHtml=`<div class="pat-detail-placeholder">
@@ -792,7 +895,7 @@ function _closeEditScreenUI(){
   const fromEl = editFrom === 'detail' ? document.getElementById('s-detail') : document.getElementById('s-'+editFrom);
   fromEl.classList.replace('off-left','on');
   if(editFrom !== 'detail') document.getElementById('main-tab-bar').style.display='';
-  pendingPdfData=null; pendingPdfName=null;
+  pendingPdfData=null; pendingPdfName=null; pendingPatternImages=[];
 }
 function closeEditScreen(){
   _historyManaged = true;
@@ -819,6 +922,7 @@ function openNewProjectFromPattern(patternId){
   openNewProject(patternId);
 }
 function openNewPattern(){
+  pendingPatternImages = [];
   openEditScreen('Add to library', patternFormHTML(null), saveNewPattern, activeTab);
 }
 function openEditPattern(id){
@@ -1009,6 +1113,7 @@ function patternFormHTML(p){
     <div class="form-row">
       <textarea id="f-notes" placeholder="General notes about this pattern…" style="min-height:100px">${esc(notesText)}</textarea>
     </div>
+    ${(!p || p.pdfName) ? `
     <div class="form-section-lbl">Pattern PDF</div>
     <div class="form-row">
       ${p&&p.pdfName
@@ -1030,14 +1135,14 @@ function patternFormHTML(p){
             <button onclick="clearPdfPreview()" style="border:none;background:none;cursor:pointer;color:var(--tx2);font-size:18px;line-height:1;padding:0">✕</button>
           </div>`}
       <input type="file" id="pat-media-fi" accept="image/*,application/pdf" style="display:none" onchange="handlePatMediaSelect(event)"/>
-    </div>
+    </div>` : ''}
     <div class="form-section-lbl">Pattern steps</div>
     <div class="form-row">
       <textarea id="f-steps" placeholder="Write your pattern steps here…" style="min-height:140px">${esc(stepsText)}</textarea>
     </div>
-    ${p?`<div class="form-section-lbl" style="margin-top:1.5rem">Photos</div>
-      <div class="form-row">
-        ${(()=>{
+    <div class="form-section-lbl" style="margin-top:1.5rem">Photos</div>
+    <div class="form-row">
+      ${p ? (()=>{
           const imgs=getPatternImages(p.id);
           const thumbs=imgs.map((src,i)=>`
             <div style="position:relative;display:inline-block">
@@ -1057,8 +1162,17 @@ function patternFormHTML(p){
               <span style="font-size:10px;font-weight:700;color:var(--tx2)">Add</span>
             </div>
           </div>`;
-        })()}
-      </div>`:''}
+        })()
+      : `<div id="edit-photo-section" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <div onclick="addNewPatternImage()"
+            style="width:72px;height:72px;border:2px dashed var(--bd2);border-radius:var(--r);
+            display:flex;flex-direction:column;align-items:center;justify-content:center;
+            gap:4px;cursor:pointer;background:var(--bg2);transition:background .15s;font-size:22px;color:var(--tx2)">
+            📷
+            <span style="font-size:10px;font-weight:700;color:var(--tx2)">Add</span>
+          </div>
+        </div>`}
+    </div>
     <div class="edit-save-footer">
       <button class="btn-save-bottom" onclick="submitEditScreen()">${p?'Save pattern':'Add pattern'}</button>
     </div>
@@ -1079,7 +1193,8 @@ function saveNewPattern(){
     fav:false,pdfName:pendingPdfName||null});
   if(pendingPdfData)localStorage.setItem('crochet_pdf_'+id,pendingPdfData);
   pendingPdfData=null;pendingPdfName=null;
-  if(pendingPatternImageData){savePatternImages(id,[pendingPatternImageData]);pendingPatternImageData=null;}
+  if(pendingPatternImages.length){savePatternImages(id,pendingPatternImages);pendingPatternImages=[];}
+  else if(pendingPatternImageData){savePatternImages(id,[pendingPatternImageData]);pendingPatternImageData=null;}
   savePatterns();closeEditScreen();renderLibrary();
 }
 function saveEditPattern(id){
