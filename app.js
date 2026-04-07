@@ -1491,6 +1491,123 @@ function viewPdf(id){
   document.addEventListener('touchcancel', ()=>{ tracking = false; }, {passive:true});
 })();
 
+// ── Backup: export & import ───────────────────────────────────────
+function showBackupSheet(){
+  const existing = document.getElementById('backup-sheet-scrim');
+  if(existing){ existing.remove(); return; }
+  const scrim = document.createElement('div');
+  scrim.id = 'backup-sheet-scrim';
+  scrim.className = 'backup-scrim';
+  scrim.innerHTML = `
+    <div class="backup-sheet" id="backup-sheet">
+      <div class="backup-sheet-handle"></div>
+      <div class="backup-sheet-title">Backup & restore</div>
+      <p class="backup-sheet-desc">Export saves all your patterns, projects and photos to a file on your device. Import restores from that file.</p>
+      <button class="backup-btn backup-btn-export" onclick="exportData()">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export backup
+      </button>
+      <button class="backup-btn backup-btn-import" onclick="importData()">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10" transform="rotate(180 12 12)"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import backup
+      </button>
+      <button class="backup-btn backup-btn-cancel" onclick="document.getElementById('backup-sheet-scrim').remove()">Cancel</button>
+    </div>`;
+  scrim.addEventListener('click', e => { if(e.target === scrim) scrim.remove(); });
+  document.body.appendChild(scrim);
+  requestAnimationFrame(()=> document.getElementById('backup-sheet').classList.add('open'));
+}
+
+function exportData(){
+  document.getElementById('backup-sheet-scrim')?.remove();
+  const data = {
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    patterns,
+    projects,
+    patternImages: {},
+    patternPdfs:   {},
+    projectSteps:  {},
+    projectPhotos: {}
+  };
+  patterns.forEach(p => {
+    const imgs = getPatternImages(p.id);
+    if(imgs.length) data.patternImages[p.id] = imgs;
+    const pdf = localStorage.getItem('crochet_pdf_' + p.id);
+    if(pdf) data.patternPdfs[p.id] = pdf;
+  });
+  projects.forEach(p => {
+    const steps = getProjStepsDone(p.id);
+    if(steps.length) data.projectSteps[p.id] = steps;
+    if(p.photoKey){
+      const photo = localStorage.getItem(p.photoKey);
+      if(photo) data.projectPhotos[p.photoKey] = photo;
+    }
+  });
+  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `crochet-corner-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showSimpleToast('Backup saved! 🧶');
+}
+
+function importData(){
+  document.getElementById('backup-sheet-scrim')?.remove();
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json,application/json';
+  inp.onchange = e => {
+    const file = e.target.files[0]; if(!file) return;
+    const r = new FileReader();
+    r.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if(!Array.isArray(data.patterns) || !Array.isArray(data.projects))
+          throw new Error('Invalid file');
+        if(!confirm(`Restore ${data.patterns.length} pattern${data.patterns.length!==1?'s':''} and ${data.projects.length} project${data.projects.length!==1?'s':''}?\n\nThis will replace everything currently in the app.`)) return;
+        // Clear old dynamic keys
+        patterns.forEach(p => {
+          localStorage.removeItem('crochet_pat_imgs_' + p.id);
+          localStorage.removeItem('crochet_pdf_' + p.id);
+        });
+        projects.forEach(p => {
+          localStorage.removeItem('crochet_psteps_' + p.id);
+          if(p.photoKey) localStorage.removeItem(p.photoKey);
+        });
+        // Restore core data
+        patterns = data.patterns;
+        projects = data.projects;
+        savePatterns(); saveProjects();
+        // Restore images / PDFs / steps / photos
+        Object.entries(data.patternImages || {}).forEach(([id,imgs]) => savePatternImages(Number(id), imgs));
+        Object.entries(data.patternPdfs   || {}).forEach(([id,pdf])  => localStorage.setItem('crochet_pdf_'+id, pdf));
+        Object.entries(data.projectSteps  || {}).forEach(([id,s])    => saveProjStepsDone(Number(id), s));
+        Object.entries(data.projectPhotos || {}).forEach(([key,ph])  => localStorage.setItem(key, ph));
+        // Sync ID counters
+        nextPatId  = patterns.length ? Math.max(...patterns.map(p=>p.id))+1 : 1;
+        nextProjId = projects.length ? Math.max(...projects.map(p=>p.id))+1 : 1;
+        renderProjects(); renderLibrary();
+        showSimpleToast('Backup restored! 🎉');
+      } catch(_){
+        alert('Could not read that file. Make sure it\'s a Crochet Corner backup.');
+      }
+    };
+    r.readAsText(file);
+  };
+  inp.click();
+}
+
+function showSimpleToast(msg){
+  const t = document.createElement('div');
+  t.className = 'simple-toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(()=> t.classList.add('show'));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(), 350); }, 2800);
+}
+
 // ── OS back-gesture / hardware back button support ────────────────
 // Replace the page-load history entry so the app starts at a known state
 history.replaceState({screen:'home'}, '');

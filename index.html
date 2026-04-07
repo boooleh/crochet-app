@@ -13,6 +13,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png"/>
 <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png"/>
 <title>Crochet Corner</title>
+<style>html,body{background:#ffffff}</style>
 <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
@@ -22,7 +23,11 @@
     <!-- Screen: Projects list -->
     <div class="screen on" id="s-projects">
       <div class="app-header">
-        <div class="app-header-side"></div>
+        <div class="app-header-side">
+          <button class="btn-header-backup" onclick="showBackupSheet()" title="Backup & restore">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+        </div>
         <img src="CC-logo.png" alt="Crochet Corner" class="app-header-logo"/>
         <div class="app-header-side">
           <button class="btn-header-add" onclick="openNewProject()" title="New project">
@@ -48,7 +53,11 @@
     <!-- Screen: Pattern library -->
     <div class="screen off-right" id="s-library">
       <div class="app-header">
-        <div class="app-header-side"></div>
+        <div class="app-header-side">
+          <button class="btn-header-backup" onclick="showBackupSheet()" title="Backup & restore">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+        </div>
         <img src="CC-logo.png" alt="Crochet Corner" class="app-header-logo"/>
         <div class="app-header-side">
           <button class="btn-header-add" onclick="openNewPattern()" title="Add pattern">

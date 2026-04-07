@@ -5,7 +5,7 @@
   "start_url": "/crochet-app/",
   "scope": "/crochet-app/",
   "display": "standalone",
-  "background_color": "#fffaf7",
+  "background_color": "#ffffff",
   "theme_color": "#e8799a",
   "orientation": "portrait-primary",
   "icons": [

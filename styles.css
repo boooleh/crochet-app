@@ -474,6 +474,75 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
   background:#fff; transform:scale(1.3);
 }
 
+/* Backup button in header */
+.btn-header-backup {
+  width:36px; height:36px; border-radius:50%; border:1.5px solid var(--bd);
+  background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  color:var(--tx2); transition:background .15s, border-color .15s, color .15s;
+}
+.btn-header-backup:hover { background:var(--acl); border-color:var(--ac); color:var(--ac); }
+
+/* Backup action sheet */
+.backup-scrim {
+  position:fixed; inset:0; z-index:8000;
+  background:rgba(30,14,60,0.45);
+  display:flex; align-items:flex-end; justify-content:center;
+}
+.backup-sheet {
+  width:100%; max-width:480px;
+  background:#fff; border-radius:22px 22px 0 0;
+  padding:12px 20px 32px;
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  box-sizing:border-box;
+}
+.backup-sheet.open { transform:translateY(0); }
+.backup-sheet-handle {
+  width:38px; height:4px; border-radius:2px;
+  background:var(--bd2); margin:0 auto 18px;
+}
+.backup-sheet-title {
+  font-size:17px; font-weight:800; color:var(--tx);
+  margin-bottom:8px;
+}
+.backup-sheet-desc {
+  font-size:13px; color:var(--tx2); line-height:1.5;
+  margin:0 0 20px;
+}
+.backup-btn {
+  width:100%; padding:14px 18px;
+  border-radius:14px; border:none; cursor:pointer;
+  font-size:15px; font-weight:700;
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:10px;
+  transition:opacity .15s;
+}
+.backup-btn:active { opacity:.8; }
+.backup-btn-export {
+  background:linear-gradient(135deg,var(--ac),#c472d4);
+  color:#fff;
+}
+.backup-btn-import {
+  background:var(--bg2); color:var(--tx);
+  border:1.5px solid var(--bd);
+}
+.backup-btn-cancel {
+  background:none; color:var(--tx2);
+  justify-content:center; margin-bottom:0;
+}
+
+/* Simple success toast */
+.simple-toast {
+  position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(12px);
+  background:#2d2040; color:#fff;
+  padding:11px 22px; border-radius:99px;
+  font-size:14px; font-weight:700;
+  z-index:9999; pointer-events:none;
+  opacity:0; transition:opacity .25s, transform .25s;
+  white-space:nowrap;
+}
+.simple-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
 /* Finish toast animations */
 @keyframes toastIn {
   from { opacity:0; transform:translateY(24px) scale(.92); }
