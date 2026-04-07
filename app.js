@@ -92,6 +92,8 @@ function triggerPhotoUpload(projectId){
 
 function saveProjects(){ localStorage.setItem('crochet_projects_v1',JSON.stringify(projects)); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function autoResize(el){ el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+function autoResizeAll(){ document.querySelectorAll('#s-edit textarea').forEach(autoResize); }
 function diffBadge(d){ const c=d==='Easy'?'easy':d==='Medium'?'medium':'hard'; return `<span class="badge badge-${c}">${d}</span>`; }
 
 // ── Navigation ────────────────────────────────────────────────────
@@ -886,6 +888,7 @@ function openEditScreen(title, formHTML, submitFn, from){
   history.pushState({screen:'edit'}, '');
   document.getElementById('s-edit').scrollTop = 0;
   document.getElementById('main-tab-bar').style.display='none';
+  requestAnimationFrame(autoResizeAll);
 }
 
 function triggerEditDelete(){
@@ -1113,10 +1116,10 @@ function patternFormHTML(p){
     </div>
     <div class="form-section-lbl">Notes</div>
     <div class="form-row">
-      <textarea id="f-notes" placeholder="General notes about this pattern…" style="min-height:100px">${esc(notesText)}</textarea>
+      <textarea id="f-notes" placeholder="General notes about this pattern…" style="min-height:120px" oninput="autoResize(this)">${esc(notesText)}</textarea>
     </div>
     ${(!p || p.pdfName) ? `
-    <div class="form-section-lbl">Pattern PDF</div>
+    <div class="form-section-lbl">${p && p.pdfName ? 'Pattern PDF' : 'Pattern PDF & images'}</div>
     <div class="form-row">
       ${p&&p.pdfName
         ?`<div class="pdf-attached-row" id="pdf-preview" style="display:flex">
@@ -1140,7 +1143,7 @@ function patternFormHTML(p){
     </div>` : ''}
     <div class="form-section-lbl">Pattern steps</div>
     <div class="form-row">
-      <textarea id="f-steps" placeholder="Write your pattern steps here…" style="min-height:140px">${esc(stepsText)}</textarea>
+      <textarea id="f-steps" placeholder="Write your pattern steps here…" style="min-height:280px" oninput="autoResize(this)">${esc(stepsText)}</textarea>
     </div>
     <div class="form-section-lbl" style="margin-top:1.5rem">Photos</div>
     <div class="form-row">
