@@ -14,7 +14,7 @@ let currentDetailId   = null;
 let currentDetailType = null; // 'project' | 'pattern'
 let detailFrom = 'projects'; // 'projects' | 'library'
 
-function savePatterns(){ localStorage.setItem('crochet_patterns_v2',JSON.stringify(patterns)); }
+function savePatterns(){ localStorage.setItem('crochet_patterns_v2',JSON.stringify(patterns)); touchModified(); }
 
 // ── Confetti & finish celebration ────────────────────────────────
 function launchConfetti(){
@@ -90,8 +90,23 @@ function triggerPhotoUpload(projectId){
   if(fi) fi.click();
 }
 
-function saveProjects(){ localStorage.setItem('crochet_projects_v1',JSON.stringify(projects)); }
+function saveProjects(){ localStorage.setItem('crochet_projects_v1',JSON.stringify(projects)); touchModified(); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Backup state dot ──────────────────────────────────────────────
+function touchModified(){
+  localStorage.setItem('crochet_last_modified', Date.now());
+  updateBackupDot();
+}
+function updateBackupDot(){
+  const lastExport   = parseInt(localStorage.getItem('crochet_last_export')   || '0');
+  const lastModified = parseInt(localStorage.getItem('crochet_last_modified') || '1');
+  const isSaved = lastExport > 0 && lastExport >= lastModified;
+  document.querySelectorAll('.backup-dot').forEach(dot => {
+    dot.classList.toggle('saved',   isSaved);
+    dot.classList.toggle('unsaved', !isSaved);
+  });
+}
 function autoResize(el){ el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
 function autoResizeAll(){ document.querySelectorAll('#s-edit textarea').forEach(autoResize); }
 function diffBadge(d){ const c=d==='Easy'?'easy':d==='Medium'?'medium':'hard'; return `<span class="badge badge-${c}">${d}</span>`; }
@@ -525,7 +540,7 @@ function refreshEditPhotos(patId){
 function getPatternImages(id){
   try{ return JSON.parse(localStorage.getItem('crochet_pat_imgs_'+id)||'[]'); }catch{ return []; }
 }
-function savePatternImages(id,imgs){ localStorage.setItem('crochet_pat_imgs_'+id,JSON.stringify(imgs)); }
+function savePatternImages(id,imgs){ localStorage.setItem('crochet_pat_imgs_'+id,JSON.stringify(imgs)); touchModified(); }
 function addPatternImage(patId){
   const inp=document.createElement('input');
   inp.type='file'; inp.accept='image/*'; inp.multiple=true;
@@ -731,7 +746,7 @@ function renderPatternDetail(p){
 
 // ── Steps ─────────────────────────────────────────────────────────
 function getProjStepsDone(id){try{return JSON.parse(localStorage.getItem('crochet_psteps_'+id)||'[]');}catch{return[];}}
-function saveProjStepsDone(id,done){localStorage.setItem('crochet_psteps_'+id,JSON.stringify(done));}
+function saveProjStepsDone(id,done){localStorage.setItem('crochet_psteps_'+id,JSON.stringify(done)); touchModified();}
 function toggleProjStep(id,idx){
   const done=getProjStepsDone(id),pos=done.indexOf(idx);
   if(pos===-1)done.push(idx);else done.splice(pos,1);
@@ -1551,6 +1566,8 @@ function exportData(){
   a.download = `crochet-corner-backup-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
+  localStorage.setItem('crochet_last_export', Date.now());
+  updateBackupDot();
   showSimpleToast('Backup saved! 🧶');
 }
 
@@ -1589,6 +1606,8 @@ function importData(){
         nextPatId  = patterns.length ? Math.max(...patterns.map(p=>p.id))+1 : 1;
         nextProjId = projects.length ? Math.max(...projects.map(p=>p.id))+1 : 1;
         renderProjects(); renderLibrary();
+        localStorage.setItem('crochet_last_export', Date.now());
+        updateBackupDot();
         showSimpleToast('Backup restored! 🎉');
       } catch(_){
         alert('Could not read that file. Make sure it\'s a Crochet Corner backup.');
@@ -1626,4 +1645,5 @@ window.addEventListener('popstate', function(){
 
 // ── Init ──────────────────────────────────────────────────────────
 renderProjects();
+updateBackupDot();
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));

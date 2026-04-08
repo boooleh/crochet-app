@@ -476,11 +476,21 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 
 /* Backup button in header */
 .btn-header-backup {
+  position:relative;
   width:36px; height:36px; border-radius:50%; border:1.5px solid var(--bd);
   background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;
   color:var(--tx2); transition:background .15s, border-color .15s, color .15s;
 }
 .btn-header-backup:hover { background:var(--acl); border-color:var(--ac); color:var(--ac); }
+.backup-dot {
+  position:absolute; top:5px; right:5px;
+  width:8px; height:8px; border-radius:50%;
+  border:1.5px solid #fff;
+  background:#d1d5db; /* neutral grey until state is known */
+  transition:background .3s;
+}
+.backup-dot.saved   { background:#22c55e; }
+.backup-dot.unsaved { background:#ef4444; }
 
 /* Backup action sheet */
 .backup-scrim {
