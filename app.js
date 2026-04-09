@@ -943,7 +943,7 @@ function openNewProjectFromPattern(patternId){
 }
 function openNewPattern(){
   pendingPatternImages = [];
-  openEditScreen('Add to library', patternFormHTML(null), saveNewPattern, activeTab);
+  openEditScreen('New pattern', patternFormHTML(null), saveNewPattern, activeTab);
 }
 function openEditPattern(id){
   const p=patterns.find(x=>x.id===id);
@@ -1115,13 +1115,19 @@ function patternFormHTML(p){
   const notesText=p?(hasSections?(p.notes||''):''):'';
   return `
     <div class="form-section-lbl">Pattern details</div>
-    <div class="form-row"><label>Pattern name</label>
+    <div class="form-row"><label>Pattern name <span style="color:#e24b4a">*</span></label>
       <input id="f-name" value="${p?esc(p.name):''}" placeholder="e.g. Bunny amigurumi"/></div>
     <div class="form-row-2">
       <div class="form-row" style="margin-bottom:0"><label>Category</label>
-        <select id="f-cat">${cats.map(c=>`<option${p&&p.category===c?' selected':''}>${c}</option>`).join('')}</select></div>
+        <select id="f-cat">
+          <option value="">— select —</option>
+          ${cats.map(c=>`<option${p&&p.category===c?' selected':''}>${c}</option>`).join('')}
+        </select></div>
       <div class="form-row" style="margin-bottom:0"><label>Difficulty</label>
-        <select id="f-diff">${diffs.map(d=>`<option${p&&p.difficulty===d?' selected':''}>${d}</option>`).join('')}</select></div>
+        <select id="f-diff">
+          <option value="">— select —</option>
+          ${diffs.map(d=>`<option${p&&p.difficulty===d?' selected':''}>${d}</option>`).join('')}
+        </select></div>
     </div>
     <div class="form-row-2">
       <div class="form-row" style="margin-bottom:0"><label>Default yarn</label>
@@ -1129,12 +1135,18 @@ function patternFormHTML(p){
       <div class="form-row" style="margin-bottom:0"><label>Default hook</label>
         <input id="f-hook" value="${p?esc(p.hook||''):''}" placeholder="e.g. 4.0mm"/></div>
     </div>
+    <div class="form-row"><label>Source / link</label>
+      <input id="f-source" type="url" value="${p?esc(p.source||''):''}" placeholder="e.g. https://ravelry.com/patterns/…"/></div>
+    <div class="form-section-lbl">Pattern steps</div>
+    <div class="form-row">
+      <textarea id="f-steps" placeholder="Write your pattern steps here…" style="min-height:120px" oninput="autoResize(this)">${esc(stepsText)}</textarea>
+    </div>
     <div class="form-section-lbl">Notes</div>
     <div class="form-row">
-      <textarea id="f-notes" placeholder="General notes about this pattern…" style="min-height:120px" oninput="autoResize(this)">${esc(notesText)}</textarea>
+      <textarea id="f-notes" placeholder="General notes about this pattern…" style="min-height:90px" oninput="autoResize(this)">${esc(notesText)}</textarea>
     </div>
     ${(!p || p.pdfName) ? `
-    <div class="form-section-lbl">${p && p.pdfName ? 'Pattern PDF' : 'Pattern PDF & images'}</div>
+    <div class="form-section-lbl">Pattern file <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--tx2)">— PDF or reference image</span></div>
     <div class="form-row">
       ${p&&p.pdfName
         ?`<div class="pdf-attached-row" id="pdf-preview" style="display:flex">
@@ -1156,11 +1168,7 @@ function patternFormHTML(p){
           </div>`}
       <input type="file" id="pat-media-fi" accept="image/*,application/pdf" style="display:none" onchange="handlePatMediaSelect(event)"/>
     </div>` : ''}
-    <div class="form-section-lbl">Pattern steps</div>
-    <div class="form-row">
-      <textarea id="f-steps" placeholder="Write your pattern steps here…" style="min-height:280px" oninput="autoResize(this)">${esc(stepsText)}</textarea>
-    </div>
-    <div class="form-section-lbl" style="margin-top:1.5rem">Photos</div>
+    <div class="form-section-lbl">Photos <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--tx2)">— photos of your finished makes</span></div>
     <div class="form-row">
       ${p ? (()=>{
           const imgs=getPatternImages(p.id);
@@ -1177,8 +1185,8 @@ function patternFormHTML(p){
             <div onclick="addPatternImageInEdit(${p.id})"
               style="width:72px;height:72px;border:2px dashed var(--bd2);border-radius:var(--r);
               display:flex;flex-direction:column;align-items:center;justify-content:center;
-              gap:4px;cursor:pointer;background:var(--bg2);transition:background .15s;font-size:22px;color:var(--tx2)">
-              📷
+              gap:4px;cursor:pointer;background:var(--bg2);transition:background .15s;color:var(--tx2)">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
               <span style="font-size:10px;font-weight:700;color:var(--tx2)">Add</span>
             </div>
           </div>`;
@@ -1187,8 +1195,8 @@ function patternFormHTML(p){
           <div onclick="addNewPatternImage()"
             style="width:72px;height:72px;border:2px dashed var(--bd2);border-radius:var(--r);
             display:flex;flex-direction:column;align-items:center;justify-content:center;
-            gap:4px;cursor:pointer;background:var(--bg2);transition:background .15s;font-size:22px;color:var(--tx2)">
-            📷
+            gap:4px;cursor:pointer;background:var(--bg2);transition:background .15s;color:var(--tx2)">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             <span style="font-size:10px;font-weight:700;color:var(--tx2)">Add</span>
           </div>
         </div>`}
@@ -1208,6 +1216,7 @@ function saveNewPattern(){
     difficulty:document.getElementById('f-diff').value,
     yarn:document.getElementById('f-yarn').value.trim(),
     hook:document.getElementById('f-hook').value.trim(),
+    source:document.getElementById('f-source').value.trim(),
     notes:document.getElementById('f-notes').value.trim(),
     sections,
     fav:false,pdfName:pendingPdfName||null});
@@ -1225,6 +1234,7 @@ function saveEditPattern(id){
   p.difficulty=document.getElementById('f-diff').value;
   p.yarn=document.getElementById('f-yarn').value.trim();
   p.hook=document.getElementById('f-hook').value.trim();
+  p.source=document.getElementById('f-source').value.trim();
   p.notes=document.getElementById('f-notes').value.trim();
   p.sections=textToSections(document.getElementById('f-steps').value.trim());
   if(pendingPdfData){localStorage.setItem('crochet_pdf_'+id,pendingPdfData);p.pdfName=pendingPdfName;pendingPdfData=null;pendingPdfName=null;}
