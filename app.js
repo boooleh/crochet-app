@@ -328,19 +328,19 @@ function renderProjectDetail(p){
       </div>`:''}
     </div>`:'';
 
-  const photoSection=isDone?`
+  const photoSection=`
     <div class="section">
-      <div class="section-lbl">Finished piece</div>
+      <div class="section-lbl">${isDone?'Finished piece':'Progress photo'}</div>
       ${photo
-        ?`<img class="photo-preview" src="${photo}" alt="Finished piece"/>
+        ?`<img class="photo-preview" src="${photo}" alt="${isDone?'Finished piece':'Progress photo'}"/>
           <button class="btn-remove-photo" onclick="removeProjectPhoto(${p.id})">Remove photo</button>`
         :`<div class="photo-upload-zone" onclick="document.getElementById('photo-fi-${p.id}').click()">
             <span style="font-size:32px">\uD83D\uDCF7</span>
-            <p>Tap to add a photo of your finished piece</p>
+            <p>${isDone?'Tap to add a photo of your finished piece':'Tap to add a progress photo'}</p>
           </div>
           <input type="file" id="photo-fi-${p.id}" accept="image/*" style="display:none"
             onchange="handlePhotoSelect(event,${p.id})"/>`}
-    </div>`:'';
+    </div>`;
 
   document.getElementById('d-content').innerHTML=`
     <div style="max-width:640px;margin:0 auto">
