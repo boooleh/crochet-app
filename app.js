@@ -107,7 +107,13 @@ function updateBackupDot(){
     dot.classList.toggle('unsaved', !isSaved);
   });
 }
-function autoResize(el){ el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+function autoResize(el){
+  const scrollEl = document.getElementById('s-edit');
+  const savedScroll = scrollEl ? scrollEl.scrollTop : 0;
+  el.style.height='auto';
+  el.style.height=el.scrollHeight+'px';
+  if(scrollEl) scrollEl.scrollTop = savedScroll;
+}
 function autoResizeAll(){ document.querySelectorAll('#s-edit textarea').forEach(autoResize); }
 function diffBadge(d){ const c=d==='Easy'?'easy':d==='Medium'?'medium':'hard'; return `<span class="badge badge-${c}">${d}</span>`; }
 
