@@ -89,15 +89,17 @@ function _applyDataToLocalStorage(d) {
 async function _pushToSupabase() {
   if (!_syncEnabled) return;
   try {
+    const now = Date.now();
     const payload = {
       user_id:    _currentUser.id,
-      data:       _gatherAllData(),
+      data:       { ..._gatherAllData(), savedAt: now },
       updated_at: new Date().toISOString()
     };
     const { error } = await _sb
       .from('user_data')
       .upsert(payload, { onConflict: 'user_id' });
     if (error) throw error;
+    localStorage.setItem('crochet_sync_at', String(now));
     _updateSyncBadge(true);
   } catch (err) {
     console.error('[Sync] Push failed:', err);
@@ -115,7 +117,15 @@ async function _pullFromSupabase() {
       .maybeSingle();
     if (error) throw error;
     if (row && row.data) {
+      const cloudSavedAt = row.data.savedAt || 0;
+      const localSavedAt = parseInt(localStorage.getItem('crochet_sync_at') || '0');
+
+      // Cloud is older or same age → local is the source of truth, push it up
+      if (cloudSavedAt <= localSavedAt) return false;
+
+      // Cloud is newer → pull it down
       _applyDataToLocalStorage(row.data);
+      localStorage.setItem('crochet_sync_at', String(cloudSavedAt));
       return true;
     }
     return false;
