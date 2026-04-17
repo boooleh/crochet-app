@@ -67,23 +67,9 @@ async function supabaseSignOut() {
     }
   } catch (e) { /* ignore */ }
 
-  // Reset all state
-  _currentUser = null;
-  _syncEnabled = false;
-  _updateAvatarDot('offline');
-  _updateSyncBadge(false);
-
-  // Show sign-in screen — remove class AND clear any inline display style
-  const overlay = document.getElementById('sb-auth-overlay');
-  if (overlay) {
-    overlay.classList.remove('sb-hidden');
-    overlay.style.display = '';
-    console.log('[Sync] Auth overlay shown, class list:', overlay.className);
-  } else {
-    console.warn('[Sync] Auth overlay element not found!');
-  }
-
-  if (typeof showSimpleToast === 'function') showSimpleToast('Signed out');
+  // Reload the page — cleanest way to guarantee a fresh signed-out state
+  // (avoids lock conflicts re-establishing the session after signOut)
+  window.location.reload();
 }
 
 // ── Data helpers ──────────────────────────────────────────────────────
