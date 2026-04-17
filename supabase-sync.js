@@ -530,6 +530,11 @@ async function initSupabase() {
       _hideAuthOverlay();
       _updateUserChip(_currentUser);
 
+      // Reflect sync state in the avatar dot immediately — otherwise it stays
+      // gray (the default CSS state) until the pull below finishes, which on
+      // a slow mobile connection can be several seconds.
+      _updateAvatarDot('syncing');
+
       // Pull from cloud, then reload app state from localStorage
       const pulled = await _pullFromSupabase();
       if (pulled) {
