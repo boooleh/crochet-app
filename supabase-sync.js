@@ -214,46 +214,116 @@ function sbSkipAuth() {
   }
 }
 
-// ── Pull-to-refresh ───────────────────────────────────────────────────
+// ── Sync helpers (shared by pull-to-refresh and sync button) ──────────
+
+async function _doSync() {
+  _setSyncBtn('⟳', 'Syncing…', '#7B4FD8');
+  const pulled = await _pullFromSupabase();
+  if (pulled) {
+    if (typeof patterns !== 'undefined') {
+      patterns   = JSON.parse(localStorage.getItem('crochet_patterns_v2') || '[]');
+      nextPatId  = patterns.length ? Math.max(...patterns.map(p => p.id)) + 1 : 5;
+    }
+    if (typeof projects !== 'undefined') {
+      projects   = JSON.parse(localStorage.getItem('crochet_projects_v1') || '[]');
+      nextProjId = projects.length ? Math.max(...projects.map(p => p.id)) + 1 : 1;
+    }
+    if (typeof renderProjects === 'function') renderProjects();
+    if (typeof renderLibrary  === 'function') renderLibrary();
+    if (typeof showSimpleToast === 'function') showSimpleToast('☁️ Synced!');
+  } else {
+    if (typeof showSimpleToast === 'function') showSimpleToast('✓ Already up to date');
+  }
+  _setSyncBtn('☁', 'Synced', '#2a9d5c');
+}
+
+function _setSyncBtn(icon, title, color) {
+  document.querySelectorAll('.sb-sync-btn').forEach(btn => {
+    btn.textContent = icon;
+    btn.title       = title;
+    btn.style.color = color;
+  });
+}
+
+// ── Sync button injected into every app header ────────────────────────
+
+function _injectSyncButtons() {
+  document.querySelectorAll('.app-header-side:first-child').forEach(side => {
+    if (side.querySelector('.sb-sync-btn')) return; // already added
+    const btn = document.createElement('button');
+    btn.className   = 'sb-sync-btn';
+    btn.textContent = '☁';
+    btn.title       = 'Tap to sync';
+    btn.setAttribute('aria-label', 'Sync now');
+    Object.assign(btn.style, {
+      background:   'none',
+      border:       'none',
+      fontSize:     '1.2rem',
+      color:        '#bbb',
+      cursor:       'pointer',
+      padding:      '0.25rem',
+      lineHeight:   '1',
+      marginLeft:   '0.25rem'
+    });
+    btn.addEventListener('click', async () => {
+      if (!_syncEnabled) {
+        if (typeof showSimpleToast === 'function') showSimpleToast('Sign in to sync ☁️');
+        return;
+      }
+      await _doSync();
+    });
+    side.appendChild(btn);
+  });
+}
+
+// ── Pull-to-refresh (simple & reliable) ──────────────────────────────
 
 function _initPullToRefresh() {
-  const THRESHOLD = 75; // px of drag needed to trigger sync
+  const THRESHOLD = 80;
   let startY = 0;
-  let dragging = false;
 
-  // Build the indicator bar
-  const bar = document.createElement('div');
-  bar.id = 'sb-ptr-bar';
-  bar.textContent = '↓  Pull down to sync';
-  Object.assign(bar.style, {
+  // Pill that appears at top after a successful pull
+  const pill = document.createElement('div');
+  pill.id = 'sb-ptr-pill';
+  Object.assign(pill.style, {
     position:     'fixed',
-    top:          '0',
-    left:         '0',
-    right:        '0',
-    textAlign:    'center',
-    padding:      '0.7rem 1rem',
+    top:          '0.75rem',
+    left:         '50%',
+    transform:    'translateX(-50%) translateY(-120%)',
     background:   '#7B4FD8',
     color:        '#fff',
-    fontSize:     '0.85rem',
+    fontSize:     '0.82rem',
     fontWeight:   '600',
-    borderRadius: '0 0 1rem 1rem',
-    transform:    'translateY(-110%)',
-    transition:   'transform 0.2s ease',
+    padding:      '0.45rem 1.1rem',
+    borderRadius: '2rem',
     zIndex:       '1500',
-    pointerEvents:'none'
+    transition:   'transform 0.25s ease',
+    pointerEvents:'none',
+    whiteSpace:   'nowrap'
   });
-  document.body.appendChild(bar);
+  document.body.appendChild(pill);
 
-  function _showBar(text) {
-    bar.textContent = text;
-    bar.style.transform = 'translateY(0)';
-  }
-  function _hideBar() {
-    bar.style.transform = 'translateY(-110%)';
+  function _showPill(text) {
+    pill.textContent = text;
+    pill.style.transform = 'translateX(-50%) translateY(0)';
+    setTimeout(() => { pill.style.transform = 'translateX(-50%) translateY(-120%)'; }, 2000);
   }
 
-  async function _doSync() {
-    _showBar('⟳  Syncing…');
+  document.addEventListener('touchstart', e => {
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchend', async e => {
+    if (!_syncEnabled) return;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (dy < THRESHOLD) return;
+
+    // Only fire if the user is at the top of the scrollable area
+    const activeScreen = document.querySelector('.screen.on');
+    const scrollable   = activeScreen?.querySelector('.list-pad') || activeScreen;
+    if (scrollable && scrollable.scrollTop > 10) return;
+
+    _showPill('⟳  Syncing…');
     const pulled = await _pullFromSupabase();
     if (pulled) {
       if (typeof patterns !== 'undefined') {
@@ -266,41 +336,9 @@ function _initPullToRefresh() {
       }
       if (typeof renderProjects === 'function') renderProjects();
       if (typeof renderLibrary  === 'function') renderLibrary();
-      _showBar('✓  Up to date!');
+      _showPill('✓  Synced!');
     } else {
-      _showBar('✓  Already up to date');
-    }
-    setTimeout(_hideBar, 1500);
-  }
-
-  document.addEventListener('touchstart', e => {
-    // Only start pull gesture when the active screen is scrolled to the very top
-    const activeScreen = document.querySelector('.screen.on');
-    const scrollable   = activeScreen?.querySelector('.list-pad') || activeScreen;
-    if (scrollable && scrollable.scrollTop > 2) return;
-    startY   = e.touches[0].clientY;
-    dragging = true;
-  }, { passive: true });
-
-  document.addEventListener('touchmove', e => {
-    if (!dragging) return;
-    const dy = e.touches[0].clientY - startY;
-    if (dy <= 0) { dragging = false; _hideBar(); return; }
-    // Block browser's native pull-to-refresh so ours takes over
-    if (e.cancelable) e.preventDefault();
-    const progress = Math.min(dy / THRESHOLD, 1);
-    bar.style.transform = `translateY(${(progress - 1) * 110}%)`;
-    bar.textContent = dy >= THRESHOLD ? '↑  Release to sync' : '↓  Pull down to sync';
-  }, { passive: false }); // passive: false lets us call preventDefault()
-
-  document.addEventListener('touchend', async e => {
-    if (!dragging) return;
-    dragging = false;
-    const dy = e.changedTouches[0].clientY - startY;
-    if (dy >= THRESHOLD && _syncEnabled) {
-      await _doSync();
-    } else {
-      _hideBar();
+      _showPill('✓  Up to date');
     }
   }, { passive: true });
 }
@@ -352,7 +390,8 @@ async function initSupabase() {
     _showAuthOverlay();
   }
 
-  // ── Pull-to-refresh gesture ───────────────────────────────────────
+  // ── Inject sync buttons into headers & start pull-to-refresh ─────
+  _injectSyncButtons();
   _initPullToRefresh();
 
   // ── Pull fresh data whenever the user switches back to the app ────
