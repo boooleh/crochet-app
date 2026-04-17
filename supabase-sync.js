@@ -42,6 +42,11 @@ async function sendMagicLink(email) {
 async function supabaseSignOut() {
   console.log('[Sync] supabaseSignOut() called');
 
+  // Show the signing-out loading overlay immediately so the user gets
+  // feedback while we wait for signOut + reload (up to ~1.5s worst case).
+  const signoutOverlay = document.getElementById('sb-signout-overlay');
+  if (signoutOverlay) signoutOverlay.style.display = 'flex';
+
   // Stop any queued sync from firing after sign out
   clearTimeout(_syncTimer);
   _syncEnabled = false;
@@ -50,21 +55,33 @@ async function supabaseSignOut() {
   const scrim = document.getElementById('sb-profile-scrim');
   if (scrim) { scrim.style.display = 'none'; scrim.style.opacity = '0'; }
 
-  // Sign out from Supabase
+  // Sign out from Supabase — race it against a 1.5s timeout.
+  // On iOS Safari / PWAs, supabase-js's internal navigator.locks.request()
+  // call can hang forever without throwing, which would block the reload below.
+  // scope:'local' also skips the server round-trip, so no network dependency.
   try {
-    if (_sb) await _sb.auth.signOut();
+    if (_sb) {
+      await Promise.race([
+        _sb.auth.signOut({ scope: 'local' }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('signOut timeout')), 1500))
+      ]);
+    }
   } catch (e) {
-    console.warn('[Sync] signOut() threw (lock conflict likely) — clearing session manually:', e?.message);
+    console.warn('[Sync] signOut() failed or timed out — clearing session manually:', e?.message);
   }
 
   // Belt-and-suspenders: wipe the Supabase session from localStorage directly
-  // so the session is gone even if signOut() failed due to a lock error
+  // so the session is gone even if signOut() failed or timed out.
   try {
     const projectRef = SUPABASE_URL.match(/https:\/\/([^.]+)\./)?.[1];
     if (projectRef) {
       localStorage.removeItem(`sb-${projectRef}-auth-token`);
       localStorage.removeItem(`sb-${projectRef}-auth-token-code-verifier`);
     }
+    // Extra safety net: remove any stray sb-*-auth-token* keys
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith('sb-') && k.includes('-auth-token')) localStorage.removeItem(k);
+    });
   } catch (e) { /* ignore */ }
 
   // Reload the page — cleanest way to guarantee a fresh signed-out state

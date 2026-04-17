@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
 <meta name="theme-color" content="#e8789a"/>
+<meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="apple-mobile-web-app-title" content="Crochet Corner"/>
@@ -168,6 +169,14 @@
   </div>
 </div>
 
+<!-- ── Sign-out loading overlay ─────────────────────────────────── -->
+<div id="sb-signout-overlay" class="sb-signout-overlay" style="display:none" aria-live="polite" aria-busy="true">
+  <div class="sb-signout-card" role="status">
+    <div class="sb-signout-spinner" aria-hidden="true"></div>
+    <div class="sb-signout-text">Signing you out…</div>
+  </div>
+</div>
+
 <!-- ── Change password sheet ─────────────────────────────────────── -->
 <div id="sb-changepw-scrim" class="sb-profile-scrim" style="display:none" onclick="sbHideChangePw()">
   <div class="sb-profile-sheet" onclick="event.stopPropagation()">
@@ -274,6 +283,13 @@
 .sb-profile-action-danger{color:#e05050;}
 .sb-profile-action-danger .sb-profile-action-icon{color:#e05050;}
 .sb-profile-version{text-align:center;font-size:.75rem;color:#bbb;padding:.75rem 1.25rem 0;}
+/* Sign-out loading overlay */
+.sb-signout-overlay{position:fixed;inset:0;background:rgba(20,5,40,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:3000;display:flex;align-items:center;justify-content:center;animation:sb-fade-in .2s ease;}
+.sb-signout-card{background:#fff;border-radius:1rem;padding:1.5rem 2rem;display:flex;flex-direction:column;align-items:center;gap:.85rem;box-shadow:0 6px 24px rgba(0,0,0,.18);min-width:180px;}
+.sb-signout-spinner{width:32px;height:32px;border:3px solid #e8d5f5;border-top-color:#7B4FD8;border-radius:50%;animation:sb-spin .8s linear infinite;}
+.sb-signout-text{font-size:.92rem;color:#333;font-weight:500;letter-spacing:.01em;}
+@keyframes sb-spin{to{transform:rotate(360deg);}}
+@keyframes sb-fade-in{from{opacity:0;}to{opacity:1;}}
 .sb-sheet-title{font-size:1.05rem;font-weight:700;color:#2d1b4e;margin:0 0 1rem;padding:0 1.25rem;}
 .sb-changepw-body{padding:0 1.25rem 1rem;}
 /* Auth tabs */
