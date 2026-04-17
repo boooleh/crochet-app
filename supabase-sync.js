@@ -54,8 +54,18 @@ async function supabaseSignOut() {
   try {
     if (_sb) await _sb.auth.signOut();
   } catch (e) {
-    console.error('[Sync] Sign out error:', e);
+    console.warn('[Sync] signOut() threw (lock conflict likely) — clearing session manually:', e?.message);
   }
+
+  // Belt-and-suspenders: wipe the Supabase session from localStorage directly
+  // so the session is gone even if signOut() failed due to a lock error
+  try {
+    const projectRef = SUPABASE_URL.match(/https:\/\/([^.]+)\./)?.[1];
+    if (projectRef) {
+      localStorage.removeItem(`sb-${projectRef}-auth-token`);
+      localStorage.removeItem(`sb-${projectRef}-auth-token-code-verifier`);
+    }
+  } catch (e) { /* ignore */ }
 
   // Reset all state
   _currentUser = null;
