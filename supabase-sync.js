@@ -25,9 +25,10 @@ function _initSupabaseClient() {
 // ── Auth ──────────────────────────────────────────────────────────────
 
 async function sendMagicLink(email) {
+  const redirectTo = window.location.origin + window.location.pathname;
   const { error } = await _sb.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: window.location.href }
+    options: { emailRedirectTo: redirectTo }
   });
   if (error) throw error;
 }
@@ -199,7 +200,7 @@ async function sbHandleAuthSubmit() {
     btn.textContent = 'Resend link';
     btn.disabled    = false;
   } catch (err) {
-    msg.textContent = 'Couldn\'t send the link. Please try again.';
+    msg.textContent = 'Error: ' + (err.message || 'Couldn\'t send the link. Please try again.');
     msg.style.color = '#d00';
     btn.textContent = 'Send magic link';
     btn.disabled    = false;
