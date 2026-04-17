@@ -204,6 +204,94 @@ function sbSkipAuth() {
   }
 }
 
+// ── Pull-to-refresh ───────────────────────────────────────────────────
+
+function _initPullToRefresh() {
+  const THRESHOLD = 75; // px of drag needed to trigger sync
+  let startY = 0;
+  let dragging = false;
+
+  // Build the indicator bar
+  const bar = document.createElement('div');
+  bar.id = 'sb-ptr-bar';
+  bar.textContent = '↓  Pull down to sync';
+  Object.assign(bar.style, {
+    position:     'fixed',
+    top:          '0',
+    left:         '0',
+    right:        '0',
+    textAlign:    'center',
+    padding:      '0.7rem 1rem',
+    background:   '#7B4FD8',
+    color:        '#fff',
+    fontSize:     '0.85rem',
+    fontWeight:   '600',
+    borderRadius: '0 0 1rem 1rem',
+    transform:    'translateY(-110%)',
+    transition:   'transform 0.2s ease',
+    zIndex:       '1500',
+    pointerEvents:'none'
+  });
+  document.body.appendChild(bar);
+
+  function _showBar(text) {
+    bar.textContent = text;
+    bar.style.transform = 'translateY(0)';
+  }
+  function _hideBar() {
+    bar.style.transform = 'translateY(-110%)';
+  }
+
+  async function _doSync() {
+    _showBar('⟳  Syncing…');
+    const pulled = await _pullFromSupabase();
+    if (pulled) {
+      if (typeof patterns !== 'undefined') {
+        patterns   = JSON.parse(localStorage.getItem('crochet_patterns_v2') || '[]');
+        nextPatId  = patterns.length ? Math.max(...patterns.map(p => p.id)) + 1 : 5;
+      }
+      if (typeof projects !== 'undefined') {
+        projects   = JSON.parse(localStorage.getItem('crochet_projects_v1') || '[]');
+        nextProjId = projects.length ? Math.max(...projects.map(p => p.id)) + 1 : 1;
+      }
+      if (typeof renderProjects === 'function') renderProjects();
+      if (typeof renderLibrary  === 'function') renderLibrary();
+      _showBar('✓  Up to date!');
+    } else {
+      _showBar('✓  Already up to date');
+    }
+    setTimeout(_hideBar, 1500);
+  }
+
+  document.addEventListener('touchstart', e => {
+    // Only allow pull when the active screen is scrolled to the top
+    const activeScreen = document.querySelector('.screen.on');
+    if (activeScreen && activeScreen.scrollTop > 2) return;
+    startY   = e.touches[0].clientY;
+    dragging = true;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const dy = e.touches[0].clientY - startY;
+    if (dy <= 0) { dragging = false; _hideBar(); return; }
+    const progress = Math.min(dy / THRESHOLD, 1);
+    bar.style.transform = `translateY(${(progress - 1) * 110}%)`;
+    bar.textContent = dy >= THRESHOLD ? '↑  Release to sync' : '↓  Pull down to sync';
+  }, { passive: true });
+
+  document.addEventListener('touchend', async e => {
+    if (!dragging) return;
+    dragging = false;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (dy >= THRESHOLD && _syncEnabled) {
+      await _doSync();
+    } else {
+      _hideBar();
+    }
+  }, { passive: true });
+}
+
 // ── App init ──────────────────────────────────────────────────────────
 
 async function initSupabase() {
@@ -250,6 +338,9 @@ async function initSupabase() {
   if (!session) {
     _showAuthOverlay();
   }
+
+  // ── Pull-to-refresh gesture ───────────────────────────────────────
+  _initPullToRefresh();
 
   // ── Pull fresh data whenever the user switches back to the app ────
   document.addEventListener('visibilitychange', async () => {
