@@ -173,8 +173,14 @@
   <div class="sb-profile-sheet" onclick="event.stopPropagation()">
     <div class="sb-profile-handle"></div>
     <h3 class="sb-sheet-title">Change password</h3>
-    <input type="password" id="sb-new-pw"     class="sb-auth-input" placeholder="New password"/>
-    <input type="password" id="sb-confirm-pw" class="sb-auth-input" placeholder="Confirm new password"/>
+    <div class="sb-field">
+      <input type="password" id="sb-new-pw" class="sb-auth-input" placeholder=" "/>
+      <label class="sb-field-label" for="sb-new-pw">New password</label>
+    </div>
+    <div class="sb-field">
+      <input type="password" id="sb-confirm-pw" class="sb-auth-input" placeholder=" "/>
+      <label class="sb-field-label" for="sb-confirm-pw">Confirm new password</label>
+    </div>
     <button class="sb-btn-primary" onclick="sbDoChangePw()">Save new password</button>
     <p id="sb-changepw-msg" class="sb-auth-msg"></p>
     <button class="sb-btn-skip" style="margin-top:.5rem" onclick="sbHideChangePw()">Cancel</button>
@@ -184,52 +190,57 @@
 <!-- ── Auth overlay (Supabase sign-in) ─────────────────────────────── -->
 <div id="sb-auth-overlay" class="sb-auth-overlay sb-hidden">
   <div class="sb-auth-card">
+
     <img src="CC-logo.png" alt="Crochet Corner" class="sb-auth-logo"/>
-    <h2 class="sb-auth-title">Sync across devices</h2>
 
     <!-- Tab toggle -->
     <div class="sb-tabs">
-      <button class="sb-tab active" id="sb-tab-in"  onclick="sbSwitchTab('in')">Sign in</button>
-      <button class="sb-tab"        id="sb-tab-up"  onclick="sbSwitchTab('up')">Create account</button>
+      <button class="sb-tab active" id="sb-tab-in" onclick="sbSwitchTab('in')">Sign in</button>
+      <button class="sb-tab"        id="sb-tab-up" onclick="sbSwitchTab('up')">Create account</button>
     </div>
 
-    <input type="email"    id="sb-email-input"    class="sb-auth-input" placeholder="your@email.com"/>
-    <input type="password" id="sb-password-input" class="sb-auth-input" placeholder="Password"/>
+    <div class="sb-field">
+      <input type="email"    id="sb-email-input"    class="sb-auth-input" placeholder=" " autocomplete="email"/>
+      <label class="sb-field-label" for="sb-email-input">Email</label>
+    </div>
+    <div class="sb-field">
+      <input type="password" id="sb-password-input" class="sb-auth-input" placeholder=" " autocomplete="current-password"/>
+      <label class="sb-field-label" for="sb-password-input">Password</label>
+    </div>
+
     <button id="sb-submit-btn" class="sb-btn-primary" onclick="sbHandleAuthSubmit()">Sign in</button>
     <p id="sb-auth-msg" class="sb-auth-msg"></p>
 
-    <!-- Magic link fallback -->
-    <p class="sb-magic-link-row">
-      <button class="sb-btn-text" onclick="sbSwitchTab('magic')">Send a magic link instead</button>
-    </p>
-    <!-- Magic link panel (hidden by default) -->
-    <div id="sb-magic-panel" style="display:none">
-      <p class="sb-auth-desc" style="margin-top:.5rem">We'll email you a link — no password needed.</p>
-      <button class="sb-btn-primary" style="margin-bottom:.4rem" onclick="sbSendMagicLink()">Send magic link</button>
-      <p id="sb-magic-msg" class="sb-auth-msg"></p>
-      <button class="sb-btn-text" onclick="sbSwitchTab('in')">← Back to sign in</button>
+    <div class="sb-auth-footer">
+      <button class="sb-btn-skip" onclick="sbSkipAuth()">Continue without signing in</button>
     </div>
 
-    <button class="sb-btn-skip" onclick="sbSkipAuth()">Continue without signing in</button>
   </div>
 </div>
 
 <!-- ── Supabase styles ────────────────────────────────────────────── -->
 <style>
 /* Auth overlay */
-.sb-auth-overlay{position:fixed;inset:0;background:rgba(30,10,50,.65);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1.5rem;}
+.sb-auth-overlay{position:fixed;inset:0;background:rgba(20,5,40,.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1.25rem;}
 .sb-hidden{display:none!important;}
-.sb-auth-card{background:#fff;border-radius:1.75rem;padding:2.25rem 1.75rem 2rem;max-width:360px;width:100%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.32);}
-.sb-auth-logo{height:64px;margin-bottom:1.1rem;}
-.sb-auth-title{font-size:1.2rem;font-weight:700;color:#2d1b4e;margin:0 0 .5rem;}
-.sb-auth-desc{font-size:.85rem;color:#666;margin:0 0 1.4rem;line-height:1.55;}
-.sb-auth-input{width:100%;padding:.75rem 1rem;border:2px solid #e2d4f0;border-radius:.75rem;font-size:1rem;outline:none;box-sizing:border-box;margin-bottom:.75rem;transition:border-color .2s;}
-.sb-auth-input:focus{border-color:#7B4FD8;}
-.sb-btn-primary{width:100%;padding:.875rem;background:#7B4FD8;color:#fff;border:none;border-radius:.75rem;font-size:1rem;font-weight:600;cursor:pointer;margin-bottom:.65rem;transition:background .2s;}
-.sb-btn-primary:hover{background:#6a40c0;}
-.sb-btn-primary:disabled{background:#bbb;cursor:default;}
-.sb-auth-msg{font-size:.85rem;min-height:1.2em;margin:0 0 .9rem;line-height:1.4;}
-.sb-btn-skip{background:none;border:none;color:#999;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:0;}
+.sb-auth-card{background:#fff;border-radius:2rem;padding:2rem 1.75rem 1.5rem;max-width:340px;width:100%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.35);}
+.sb-auth-logo{height:56px;margin-bottom:1.5rem;}
+.sb-auth-desc{font-size:.85rem;color:#888;margin:0 0 1.25rem;line-height:1.55;}
+/* Floating label field */
+.sb-field{position:relative;margin-bottom:.85rem;text-align:left;}
+.sb-auth-input{width:100%;padding:1.35rem 1rem .55rem;border:1.5px solid #ede5f8;border-radius:.875rem;font-size:.95rem;outline:none;box-sizing:border-box;background:#faf7ff;color:#2d1b4e;transition:border-color .2s,box-shadow .2s;}
+.sb-auth-input:focus{border-color:#7B4FD8;box-shadow:0 0 0 3px rgba(123,79,216,.12);background:#fff;}
+.sb-field-label{position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-size:.95rem;color:#b0a0c8;pointer-events:none;transition:top .18s ease,font-size .18s ease,color .18s ease,transform .18s ease;}
+.sb-auth-input:focus ~ .sb-field-label,
+.sb-auth-input:not(:placeholder-shown) ~ .sb-field-label{top:.55rem;transform:translateY(0);font-size:.68rem;font-weight:600;color:#7B4FD8;letter-spacing:.03em;text-transform:uppercase;}
+.sb-btn-primary{width:100%;padding:.9rem;background:linear-gradient(135deg,#7B4FD8,#a070e8);color:#fff;border:none;border-radius:.875rem;font-size:1rem;font-weight:700;cursor:pointer;margin-top:.25rem;margin-bottom:.5rem;transition:opacity .2s,transform .1s;box-shadow:0 4px 16px rgba(123,79,216,.35);}
+.sb-btn-primary:hover{opacity:.92;}
+.sb-btn-primary:active{transform:scale(.98);}
+.sb-btn-primary:disabled{background:#ccc;box-shadow:none;cursor:default;}
+.sb-auth-msg{font-size:.82rem;min-height:1.1em;margin:.25rem 0 .25rem;line-height:1.4;}
+.sb-auth-footer{margin-top:.75rem;padding-top:.75rem;border-top:1px solid #f0eaf8;}
+.sb-btn-skip{background:none;border:none;color:#bbb;font-size:.8rem;cursor:pointer;padding:0;}
+.sb-btn-skip:hover{color:#888;}
 /* Cloud sync button in header */
 .sb-sync-btn{background:none;border:none;font-size:1.15rem;color:#bbb;cursor:pointer;padding:.2rem .3rem;line-height:1;transition:color .2s;}
 .sb-sync-btn:hover{color:#7B4FD8;}

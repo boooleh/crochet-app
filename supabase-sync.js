@@ -256,16 +256,10 @@ function _updateUserChip(user) {
 
 // ── Auth tab switching ────────────────────────────────────────────────
 
-let _sbCurrentTab = 'in'; // 'in' | 'up' | 'magic'
+let _sbCurrentTab = 'in'; // 'in' | 'up'
 
 function sbSwitchTab(tab) {
   _sbCurrentTab = tab;
-  const isMain  = tab === 'in' || tab === 'up';
-  document.getElementById('sb-magic-panel').style.display  = isMain ? 'none' : 'block';
-  document.querySelector('.sb-magic-link-row').style.display = isMain ? 'block' : 'none';
-  document.getElementById('sb-email-input').style.display    = isMain ? 'block' : 'none';
-  document.getElementById('sb-password-input').style.display = isMain ? 'block' : 'none';
-  document.getElementById('sb-submit-btn').style.display     = isMain ? 'block' : 'none';
   document.getElementById('sb-auth-msg').textContent = '';
   document.getElementById('sb-tab-in').classList.toggle('active', tab === 'in');
   document.getElementById('sb-tab-up').classList.toggle('active', tab === 'up');
@@ -305,23 +299,6 @@ async function sbHandleAuthSubmit() {
   }
   btn.disabled    = false;
   btn.textContent = _sbCurrentTab === 'up' ? 'Create account' : 'Sign in';
-}
-
-// ── Magic link (fallback) ─────────────────────────────────────────────
-
-async function sbSendMagicLink() {
-  const email = (document.getElementById('sb-email-input')?.value || '').trim();
-  const msg   = document.getElementById('sb-magic-msg');
-  if (!email || !email.includes('@')) { msg.textContent = 'Enter your email above first.'; msg.style.color = '#d00'; return; }
-  msg.textContent = 'Sending…'; msg.style.color = '#888';
-  try {
-    await sendMagicLink(email);
-    msg.textContent = '✉️ Magic link sent! Check your email.';
-    msg.style.color = '#2a9d5c';
-  } catch (err) {
-    msg.textContent = 'Error: ' + (err.message || 'Could not send link.');
-    msg.style.color = '#d00';
-  }
 }
 
 // ── Skip / sign out ───────────────────────────────────────────────────
@@ -517,8 +494,6 @@ async function initSupabase() {
     _showAuthOverlay();
   }
 
-  // ── Start pull-to-refresh ─────────────────────────────────────────
-  _initPullToRefresh();
 
   // ── Pull fresh data whenever the user switches back to the app ────
   document.addEventListener('visibilitychange', async () => {
