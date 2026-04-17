@@ -250,4 +250,23 @@ async function initSupabase() {
   if (!session) {
     _showAuthOverlay();
   }
+
+  // ── Pull fresh data whenever the user switches back to the app ────
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible' && _syncEnabled) {
+      const pulled = await _pullFromSupabase();
+      if (pulled) {
+        if (typeof patterns !== 'undefined') {
+          patterns   = JSON.parse(localStorage.getItem('crochet_patterns_v2') || '[]');
+          nextPatId  = patterns.length ? Math.max(...patterns.map(p => p.id)) + 1 : 5;
+        }
+        if (typeof projects !== 'undefined') {
+          projects   = JSON.parse(localStorage.getItem('crochet_projects_v1') || '[]');
+          nextProjId = projects.length ? Math.max(...projects.map(p => p.id)) + 1 : 1;
+        }
+        if (typeof renderProjects === 'function') renderProjects();
+        if (typeof renderLibrary  === 'function') renderLibrary();
+      }
+    }
+  });
 }
