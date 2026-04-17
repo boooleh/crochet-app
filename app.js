@@ -14,7 +14,7 @@ let currentDetailId   = null;
 let currentDetailType = null; // 'project' | 'pattern'
 let detailFrom = 'projects'; // 'projects' | 'library'
 
-function savePatterns(){ localStorage.setItem('crochet_patterns_v2',JSON.stringify(patterns)); touchModified(); }
+function savePatterns(){ localStorage.setItem('crochet_patterns_v2',JSON.stringify(patterns)); touchModified(); if(typeof queueSupabaseSync==='function')queueSupabaseSync(); }
 
 // ── Confetti & finish celebration ────────────────────────────────
 function launchConfetti(){
@@ -90,7 +90,7 @@ function triggerPhotoUpload(projectId){
   if(fi) fi.click();
 }
 
-function saveProjects(){ localStorage.setItem('crochet_projects_v1',JSON.stringify(projects)); touchModified(); }
+function saveProjects(){ localStorage.setItem('crochet_projects_v1',JSON.stringify(projects)); touchModified(); if(typeof queueSupabaseSync==='function')queueSupabaseSync(); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // ── Backup state dot ──────────────────────────────────────────────
@@ -752,7 +752,7 @@ function renderPatternDetail(p){
 
 // ── Steps ─────────────────────────────────────────────────────────
 function getProjStepsDone(id){try{return JSON.parse(localStorage.getItem('crochet_psteps_'+id)||'[]');}catch{return[];}}
-function saveProjStepsDone(id,done){localStorage.setItem('crochet_psteps_'+id,JSON.stringify(done)); touchModified();}
+function saveProjStepsDone(id,done){localStorage.setItem('crochet_psteps_'+id,JSON.stringify(done)); touchModified(); if(typeof queueSupabaseSync==='function')queueSupabaseSync(); }
 function toggleProjStep(id,idx){
   const done=getProjStepsDone(id),pos=done.indexOf(idx);
   if(pos===-1)done.push(idx);else done.splice(pos,1);
@@ -1660,6 +1660,7 @@ window.addEventListener('popstate', function(){
 });
 
 // ── Init ──────────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────
 renderProjects();
-updateBackupDot();
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if(typeof initSupabase==='function') initSupabase();

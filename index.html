@@ -125,6 +125,48 @@
   </div>
 </div>
 
+<!-- ── Auth overlay (Supabase magic-link sign-in) ────────────────── -->
+<div id="sb-auth-overlay" class="sb-auth-overlay sb-hidden">
+  <div class="sb-auth-card">
+    <img src="CC-logo.png" alt="Crochet Corner" class="sb-auth-logo"/>
+    <h2 class="sb-auth-title">Sync across devices</h2>
+    <p class="sb-auth-desc">Enter your email and we'll send you a magic link — no password needed.</p>
+    <input type="email" id="sb-email-input" class="sb-auth-input" placeholder="your@email.com"
+           onkeydown="if(event.key==='Enter')sbHandleAuthSubmit()"/>
+    <button id="sb-submit-btn" class="sb-btn-primary" onclick="sbHandleAuthSubmit()">Send magic link</button>
+    <p id="sb-auth-msg" class="sb-auth-msg"></p>
+    <button class="sb-btn-skip" onclick="sbSkipAuth()">Continue without signing in</button>
+  </div>
+</div>
+
+<!-- ── Supabase styles ────────────────────────────────────────────── -->
+<style>
+/* Auth overlay */
+.sb-auth-overlay{position:fixed;inset:0;background:rgba(30,10,50,.65);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1.5rem;}
+.sb-hidden{display:none!important;}
+.sb-auth-card{background:#fff;border-radius:1.75rem;padding:2.25rem 1.75rem 2rem;max-width:360px;width:100%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.32);}
+.sb-auth-logo{height:64px;margin-bottom:1.1rem;}
+.sb-auth-title{font-size:1.2rem;font-weight:700;color:#2d1b4e;margin:0 0 .5rem;}
+.sb-auth-desc{font-size:.85rem;color:#666;margin:0 0 1.4rem;line-height:1.55;}
+.sb-auth-input{width:100%;padding:.75rem 1rem;border:2px solid #e2d4f0;border-radius:.75rem;font-size:1rem;outline:none;box-sizing:border-box;margin-bottom:.75rem;transition:border-color .2s;}
+.sb-auth-input:focus{border-color:#7B4FD8;}
+.sb-btn-primary{width:100%;padding:.875rem;background:#7B4FD8;color:#fff;border:none;border-radius:.75rem;font-size:1rem;font-weight:600;cursor:pointer;margin-bottom:.65rem;transition:background .2s;}
+.sb-btn-primary:hover{background:#6a40c0;}
+.sb-btn-primary:disabled{background:#bbb;cursor:default;}
+.sb-auth-msg{font-size:.85rem;min-height:1.2em;margin:0 0 .9rem;line-height:1.4;}
+.sb-btn-skip{background:none;border:none;color:#999;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:0;}
+/* Sync badge that shows in the header */
+.sb-sync-badge{font-size:.75rem;vertical-align:middle;margin-left:.25rem;opacity:.7;}
+.sb-sync-badge.sb-sync-ok{color:#2a9d5c;}
+.sb-sync-badge.sb-sync-err{color:#e05;}
+/* Signed-in user chip */
+.sb-user-chip{font-size:.7rem;color:#888;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;cursor:pointer;display:none;}
+</style>
+
+<!-- ── Supabase JS SDK ─────────────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="supabase-sync.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
