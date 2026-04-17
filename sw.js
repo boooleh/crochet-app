@@ -1,4 +1,4 @@
-const CACHE = 'crochet-app-v13';
+const CACHE = 'crochet-app-v14';
 const ASSETS = [
   './',
   './index.html',

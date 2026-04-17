@@ -18,7 +18,13 @@ function _initSupabaseClient() {
     console.warn('[Sync] Supabase CDN not loaded — running offline.');
     return false;
   }
-  _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession:   true,
+      detectSessionInUrl: false  // prevents multiple tabs racing to parse the URL
+    }
+  });
   return true;
 }
 
@@ -35,6 +41,10 @@ async function sendMagicLink(email) {
 
 async function supabaseSignOut() {
   console.log('[Sync] supabaseSignOut() called');
+
+  // Stop any queued sync from firing after sign out
+  clearTimeout(_syncTimer);
+  _syncEnabled = false;
 
   // Close the profile sheet
   const scrim = document.getElementById('sb-profile-scrim');
@@ -128,7 +138,7 @@ async function _pushToSupabase() {
     _updateSyncBadge(true);
     _updateAvatarDot('synced');
   } catch (err) {
-    console.error('[Sync] Push failed:', err);
+    console.error('[Sync] Push failed:', err?.message || err?.code || JSON.stringify(err));
     _updateSyncBadge(false);
     _updateAvatarDot('error');
   }
@@ -179,7 +189,7 @@ async function _pullFromSupabase() {
     console.log('[Sync] No cloud data found');
     return false;
   } catch (err) {
-    console.error('[Sync] Pull failed:', err);
+    console.error('[Sync] Pull failed:', err?.message || err?.code || JSON.stringify(err));
     return false;
   }
 }
