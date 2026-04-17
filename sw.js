@@ -1,10 +1,14 @@
-const CACHE = 'crochet-app-v4';
+const CACHE = 'crochet-app-v5';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  './',
+  './index.html',
+  './manifest.json',
+  './styles.css',
+  './app.js',
+  './supabase-config.js',
+  './supabase-sync.js',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
 self.addEventListener('install', e => {
