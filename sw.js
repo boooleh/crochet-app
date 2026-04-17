@@ -1,14 +1,18 @@
-const CACHE = 'crochet-app-v16';
+const CACHE = 'crochet-app-v17';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './styles.css',
-  './app.js',
-  './supabase-config.js',
-  './supabase-sync.js',
   './icons/icon-192.png',
   './icons/icon-512.png'
+];
+
+// JS files are NOT pre-cached — always fetched fresh from network
+const NETWORK_FIRST = [
+  'app.js',
+  'supabase-config.js',
+  'supabase-sync.js'
 ];
 
 self.addEventListener('install', e => {
@@ -26,14 +30,28 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Network-first for HTML so updates are always picked up
-  if (e.request.destination === 'document') {
+  const url = e.request.url;
+
+  // Always network-first for JS files and HTML — never serve stale code
+  const isScript = NETWORK_FIRST.some(f => url.includes(f));
+  if (isScript || e.request.destination === 'document') {
     e.respondWith(
-      fetch(e.request).catch(() => caches.match(e.request))
+      fetch(e.request)
+        .then(response => {
+          // Update cache with fresh copy
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE).then(c => c.put(e.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(e.request))
     );
     return;
   }
+
+  // Cache-first for everything else (images, icons, CSS)
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('/index.html')))
+    caches.match(e.request).then(cached => cached || fetch(e.request))
   );
 });
