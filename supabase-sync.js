@@ -34,15 +34,28 @@ async function sendMagicLink(email) {
 }
 
 async function supabaseSignOut() {
-  if (!_sb) return;
-  sbHideProfileSheet();
-  await _sb.auth.signOut();
+  // Close the profile sheet directly
+  const scrim = document.getElementById('sb-profile-scrim');
+  if (scrim) scrim.style.display = 'none';
+
+  // Sign out from Supabase
+  try {
+    if (_sb) await _sb.auth.signOut();
+  } catch (e) {
+    console.error('[Sync] Sign out error:', e);
+  }
+
+  // Reset all state
   _currentUser = null;
   _syncEnabled = false;
   _updateAvatarDot('offline');
   _updateSyncBadge(false);
-  _updateUserChip(null);
-  _showAuthOverlay();
+
+  // Show sign-in screen
+  const overlay = document.getElementById('sb-auth-overlay');
+  if (overlay) overlay.classList.remove('sb-hidden');
+
+  if (typeof showSimpleToast === 'function') showSimpleToast('Signed out');
 }
 
 // ── Data helpers ──────────────────────────────────────────────────────
