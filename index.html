@@ -172,18 +172,22 @@
 <div id="sb-changepw-scrim" class="sb-profile-scrim" style="display:none" onclick="sbHideChangePw()">
   <div class="sb-profile-sheet" onclick="event.stopPropagation()">
     <div class="sb-profile-handle"></div>
-    <h3 class="sb-sheet-title">Change password</h3>
-    <div class="sb-field">
-      <input type="password" id="sb-new-pw" class="sb-auth-input" placeholder=" "/>
-      <label class="sb-field-label" for="sb-new-pw">New password</label>
+    <div class="sb-changepw-body">
+      <h3 class="sb-sheet-title" style="padding:0 0 1rem">Change password</h3>
+      <div class="sb-field">
+        <input type="password" id="sb-new-pw" class="sb-auth-input" placeholder=" "/>
+        <label class="sb-field-label" for="sb-new-pw">New password</label>
+      </div>
+      <div class="sb-field">
+        <input type="password" id="sb-confirm-pw" class="sb-auth-input" placeholder=" "/>
+        <label class="sb-field-label" for="sb-confirm-pw">Confirm new password</label>
+      </div>
+      <button class="sb-btn-primary" onclick="sbDoChangePw()">Save new password</button>
+      <p id="sb-changepw-msg" class="sb-auth-msg"></p>
+      <div style="text-align:center;margin-top:.75rem">
+        <button class="sb-btn-skip" onclick="sbHideChangePw()">Cancel</button>
+      </div>
     </div>
-    <div class="sb-field">
-      <input type="password" id="sb-confirm-pw" class="sb-auth-input" placeholder=" "/>
-      <label class="sb-field-label" for="sb-confirm-pw">Confirm new password</label>
-    </div>
-    <button class="sb-btn-primary" onclick="sbDoChangePw()">Save new password</button>
-    <p id="sb-changepw-msg" class="sb-auth-msg"></p>
-    <button class="sb-btn-skip" style="margin-top:.5rem" onclick="sbHideChangePw()">Cancel</button>
   </div>
 </div>
 
@@ -271,6 +275,7 @@
 .sb-profile-action-danger .sb-profile-action-icon{color:#e05050;}
 .sb-profile-version{text-align:center;font-size:.75rem;color:#bbb;padding:.75rem 1.25rem 0;}
 .sb-sheet-title{font-size:1.05rem;font-weight:700;color:#2d1b4e;margin:0 0 1rem;padding:0 1.25rem;}
+.sb-changepw-body{padding:0 1.25rem 1rem;}
 /* Auth tabs */
 .sb-tabs{display:flex;border-radius:.6rem;overflow:hidden;border:2px solid #e2d4f0;margin-bottom:1rem;}
 .sb-tab{flex:1;padding:.55rem;background:none;border:none;font-size:.875rem;font-weight:600;color:#888;cursor:pointer;transition:background .15s,color .15s;}

@@ -34,9 +34,11 @@ async function sendMagicLink(email) {
 }
 
 async function supabaseSignOut() {
-  // Close the profile sheet directly
+  console.log('[Sync] supabaseSignOut() called');
+
+  // Close the profile sheet
   const scrim = document.getElementById('sb-profile-scrim');
-  if (scrim) scrim.style.display = 'none';
+  if (scrim) { scrim.style.display = 'none'; scrim.style.opacity = '0'; }
 
   // Sign out from Supabase
   try {
@@ -51,9 +53,15 @@ async function supabaseSignOut() {
   _updateAvatarDot('offline');
   _updateSyncBadge(false);
 
-  // Show sign-in screen
+  // Show sign-in screen — remove class AND clear any inline display style
   const overlay = document.getElementById('sb-auth-overlay');
-  if (overlay) overlay.classList.remove('sb-hidden');
+  if (overlay) {
+    overlay.classList.remove('sb-hidden');
+    overlay.style.display = '';
+    console.log('[Sync] Auth overlay shown, class list:', overlay.className);
+  } else {
+    console.warn('[Sync] Auth overlay element not found!');
+  }
 
   if (typeof showSimpleToast === 'function') showSimpleToast('Signed out');
 }
@@ -496,10 +504,12 @@ async function initSupabase() {
       _updateSyncBadge(true);
       _updateAvatarDot('synced');
     } else {
+      // SIGNED_OUT — reset everything and force the login screen
       _syncEnabled = false;
       _updateSyncBadge(false);
       _updateAvatarDot('offline');
       _updateUserChip(null);
+      _showAuthOverlay();
     }
   });
 
