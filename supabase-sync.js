@@ -35,12 +35,14 @@ async function sendMagicLink(email) {
 
 async function supabaseSignOut() {
   if (!_sb) return;
+  sbHideProfileSheet();
   await _sb.auth.signOut();
   _currentUser = null;
   _syncEnabled = false;
-  _showAuthOverlay();
+  _updateAvatarDot('offline');
   _updateSyncBadge(false);
   _updateUserChip(null);
+  _showAuthOverlay();
 }
 
 // ── Data helpers ──────────────────────────────────────────────────────
