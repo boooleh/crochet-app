@@ -144,17 +144,39 @@ async function _pullFromSupabase() {
       .maybeSingle();
     if (error) throw error;
     if (row && row.data) {
-      const cloudSavedAt = row.data.savedAt || 0;
-      const localSavedAt = parseInt(localStorage.getItem('crochet_sync_at') || '0');
+      const cloudSavedAt   = row.data.savedAt || 0;
+      const localSavedAt   = parseInt(localStorage.getItem('crochet_sync_at') || '0');
+      const cloudPatterns  = row.data.patterns  || [];
+      const cloudProjects  = row.data.projects  || [];
+      const localPatterns  = JSON.parse(localStorage.getItem('crochet_patterns_v2') || '[]');
+      const localProjects  = JSON.parse(localStorage.getItem('crochet_projects_v1') || '[]');
+      const cloudHasData   = cloudPatterns.length > 0 || cloudProjects.length > 0;
+      const localIsEmpty   = localPatterns.length === 0 && localProjects.length === 0;
 
-      // Cloud is older or same age → local is the source of truth, push it up
-      if (cloudSavedAt <= localSavedAt) return false;
+      console.log('[Sync] Pull check — cloudSavedAt:', cloudSavedAt, 'localSavedAt:', localSavedAt,
+        '| cloud patterns:', cloudPatterns.length, 'local patterns:', localPatterns.length);
 
-      // Cloud is newer → pull it down
+      // Safety net: if local is empty but cloud has data, always pull regardless of timestamps.
+      // This handles fresh installs, cleared storage, and missing savedAt fields.
+      if (localIsEmpty && cloudHasData) {
+        console.log('[Sync] Local empty + cloud has data → force pulling');
+        _applyDataToLocalStorage(row.data);
+        localStorage.setItem('crochet_sync_at', String(cloudSavedAt || Date.now()));
+        return true;
+      }
+
+      // Normal path: only pull if cloud timestamp is strictly newer
+      if (cloudSavedAt <= localSavedAt) {
+        console.log('[Sync] Local is up to date — skipping pull');
+        return false;
+      }
+
+      console.log('[Sync] Cloud is newer → pulling');
       _applyDataToLocalStorage(row.data);
       localStorage.setItem('crochet_sync_at', String(cloudSavedAt));
       return true;
     }
+    console.log('[Sync] No cloud data found');
     return false;
   } catch (err) {
     console.error('[Sync] Pull failed:', err);
@@ -173,6 +195,9 @@ function queueSupabaseSync() {
 // ── Profile sheet ─────────────────────────────────────────────────────
 
 function sbShowProfileSheet() {
+  // Sync the dot to match actual state (fixes gray/green inconsistency)
+  _updateAvatarDot(_syncEnabled ? 'synced' : 'offline');
+
   // Update content before showing
   const email  = _currentUser?.email || 'Not signed in';
   const syncLbl = _syncEnabled ? '● Synced' : '● Offline mode';
@@ -498,8 +523,15 @@ async function initSupabase() {
         if (typeof renderLibrary  === 'function') renderLibrary();
         if (typeof showSimpleToast === 'function') showSimpleToast('☁️ Synced from cloud!');
       } else {
-        // No cloud data yet — push local data up
-        _pushToSupabase();
+        // Pull was skipped (local is up to date) — push local up only if it actually has data
+        const localPatterns = JSON.parse(localStorage.getItem('crochet_patterns_v2') || '[]');
+        const localProjects = JSON.parse(localStorage.getItem('crochet_projects_v1') || '[]');
+        if (localPatterns.length > 0 || localProjects.length > 0) {
+          console.log('[Sync] Local has data, pushing to cloud');
+          _pushToSupabase();
+        } else {
+          console.log('[Sync] Local is empty — skipping push to protect cloud data');
+        }
       }
       _updateSyncBadge(true);
       _updateAvatarDot('synced');
