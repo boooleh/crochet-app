@@ -274,9 +274,10 @@ function _initPullToRefresh() {
   }
 
   document.addEventListener('touchstart', e => {
-    // Only allow pull when the active screen is scrolled to the top
+    // Only start pull gesture when the active screen is scrolled to the very top
     const activeScreen = document.querySelector('.screen.on');
-    if (activeScreen && activeScreen.scrollTop > 2) return;
+    const scrollable   = activeScreen?.querySelector('.list-pad') || activeScreen;
+    if (scrollable && scrollable.scrollTop > 2) return;
     startY   = e.touches[0].clientY;
     dragging = true;
   }, { passive: true });
@@ -285,10 +286,12 @@ function _initPullToRefresh() {
     if (!dragging) return;
     const dy = e.touches[0].clientY - startY;
     if (dy <= 0) { dragging = false; _hideBar(); return; }
+    // Block browser's native pull-to-refresh so ours takes over
+    if (e.cancelable) e.preventDefault();
     const progress = Math.min(dy / THRESHOLD, 1);
     bar.style.transform = `translateY(${(progress - 1) * 110}%)`;
     bar.textContent = dy >= THRESHOLD ? '↑  Release to sync' : '↓  Pull down to sync';
-  }, { passive: true });
+  }, { passive: false }); // passive: false lets us call preventDefault()
 
   document.addEventListener('touchend', async e => {
     if (!dragging) return;
