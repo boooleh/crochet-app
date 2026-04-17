@@ -24,12 +24,12 @@
     <div class="screen on" id="s-projects">
       <div class="app-header">
         <div class="app-header-side">
-          <button class="btn-header-backup" onclick="showBackupSheet()" title="Backup & restore">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span class="backup-dot"></span>
+          <button class="sb-avatar-btn" onclick="sbShowProfileSheet()" aria-label="Profile & settings">
+            <span class="sb-avatar-initials">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </span>
+            <span class="sb-avatar-dot"></span>
           </button>
-        
-          <button class="sb-sync-btn" onclick="sbTriggerSync()" title="Sync now" aria-label="Sync now">☁</button>
         </div>
         <img src="CC-logo.png" alt="Crochet Corner" class="app-header-logo"/>
         <div class="app-header-side">
@@ -57,12 +57,12 @@
     <div class="screen off-right" id="s-library">
       <div class="app-header">
         <div class="app-header-side">
-          <button class="btn-header-backup" onclick="showBackupSheet()" title="Backup & restore">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span class="backup-dot"></span>
+          <button class="sb-avatar-btn" onclick="sbShowProfileSheet()" aria-label="Profile & settings">
+            <span class="sb-avatar-initials">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </span>
+            <span class="sb-avatar-dot"></span>
           </button>
-        
-          <button class="sb-sync-btn" onclick="sbTriggerSync()" title="Sync now" aria-label="Sync now">☁</button>
         </div>
         <img src="CC-logo.png" alt="Crochet Corner" class="app-header-logo"/>
         <div class="app-header-side">
@@ -129,6 +129,58 @@
   </div>
 </div>
 
+<!-- ── Profile & settings sheet ──────────────────────────────────── -->
+<div id="sb-profile-scrim" class="sb-profile-scrim" style="display:none" onclick="sbHideProfileSheet()">
+  <div class="sb-profile-sheet" onclick="event.stopPropagation()">
+    <div class="sb-profile-handle"></div>
+
+    <!-- User section -->
+    <div class="sb-profile-user" id="sb-profile-user-row">
+      <div class="sb-profile-avatar-large" id="sb-profile-avatar-large">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+      <div class="sb-profile-user-info">
+        <div class="sb-profile-email" id="sb-profile-email-lbl">Not signed in</div>
+        <div class="sb-profile-sync-lbl" id="sb-profile-sync-lbl">Sync disabled</div>
+      </div>
+    </div>
+
+    <div class="sb-profile-divider"></div>
+
+    <!-- Actions -->
+    <button class="sb-profile-action" onclick="sbTriggerSync();sbHideProfileSheet()">
+      <span class="sb-profile-action-icon">☁</span> Sync now
+    </button>
+    <button class="sb-profile-action" onclick="sbHideProfileSheet();showBackupSheet()">
+      <span class="sb-profile-action-icon">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </span> Backup & restore
+    </button>
+    <button class="sb-profile-action" id="sb-change-pw-btn" onclick="sbHideProfileSheet();sbShowChangePw()">
+      <span class="sb-profile-action-icon">🔑</span> Change password
+    </button>
+    <button class="sb-profile-action sb-profile-action-danger" id="sb-signout-btn" onclick="supabaseSignOut();sbHideProfileSheet()">
+      <span class="sb-profile-action-icon">↩</span> Sign out
+    </button>
+
+    <div class="sb-profile-divider"></div>
+    <div class="sb-profile-version">Crochet Corner · Version 1.0</div>
+  </div>
+</div>
+
+<!-- ── Change password sheet ─────────────────────────────────────── -->
+<div id="sb-changepw-scrim" class="sb-profile-scrim" style="display:none" onclick="sbHideChangePw()">
+  <div class="sb-profile-sheet" onclick="event.stopPropagation()">
+    <div class="sb-profile-handle"></div>
+    <h3 class="sb-sheet-title">Change password</h3>
+    <input type="password" id="sb-new-pw"     class="sb-auth-input" placeholder="New password"/>
+    <input type="password" id="sb-confirm-pw" class="sb-auth-input" placeholder="Confirm new password"/>
+    <button class="sb-btn-primary" onclick="sbDoChangePw()">Save new password</button>
+    <p id="sb-changepw-msg" class="sb-auth-msg"></p>
+    <button class="sb-btn-skip" style="margin-top:.5rem" onclick="sbHideChangePw()">Cancel</button>
+  </div>
+</div>
+
 <!-- ── Auth overlay (Supabase sign-in) ─────────────────────────────── -->
 <div id="sb-auth-overlay" class="sb-auth-overlay sb-hidden">
   <div class="sb-auth-card">
@@ -183,6 +235,31 @@
 .sb-sync-btn:hover{color:#7B4FD8;}
 .sb-sync-btn.synced{color:#2a9d5c;}
 .sb-sync-btn.error{color:#e05;}
+/* Avatar button */
+.sb-avatar-btn{position:relative;background:none;border:none;padding:0;cursor:pointer;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.sb-avatar-initials{width:34px;height:34px;border-radius:50%;background:#e8d5f5;color:#7B4FD8;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;line-height:1;}
+.sb-avatar-dot{position:absolute;bottom:1px;right:1px;width:9px;height:9px;border-radius:50%;background:#ccc;border:2px solid #fff;transition:background .3s;}
+.sb-avatar-dot.synced{background:#2a9d5c;}
+.sb-avatar-dot.syncing{background:#f4a020;animation:sb-pulse 1s infinite;}
+.sb-avatar-dot.error{background:#e05050;}
+@keyframes sb-pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* Profile sheet */
+.sb-profile-scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:flex;align-items:flex-end;}
+.sb-profile-sheet{background:#fff;border-radius:1.5rem 1.5rem 0 0;padding:0 0 2rem;width:100%;max-width:480px;margin:0 auto;animation:sb-slide-up .25s ease;}
+@keyframes sb-slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sb-profile-handle{width:40px;height:4px;background:#ddd;border-radius:2px;margin:12px auto 16px;}
+.sb-profile-user{display:flex;align-items:center;gap:.9rem;padding:0 1.25rem 1rem;}
+.sb-profile-avatar-large{width:48px;height:48px;border-radius:50%;background:#e8d5f5;color:#7B4FD8;display:flex;align-items:center;justify-content:center;font-size:1.25rem;font-weight:700;flex-shrink:0;}
+.sb-profile-email{font-size:.9rem;font-weight:600;color:#2d1b4e;}
+.sb-profile-sync-lbl{font-size:.78rem;color:#888;margin-top:.15rem;}
+.sb-profile-divider{height:1px;background:#f0f0f0;margin:.25rem 0;}
+.sb-profile-action{display:flex;align-items:center;gap:.75rem;width:100%;padding:.85rem 1.25rem;background:none;border:none;font-size:.95rem;color:#2d1b4e;cursor:pointer;text-align:left;transition:background .15s;}
+.sb-profile-action:hover{background:#f7f4fc;}
+.sb-profile-action-icon{width:20px;text-align:center;font-size:1rem;color:#7B4FD8;}
+.sb-profile-action-danger{color:#e05050;}
+.sb-profile-action-danger .sb-profile-action-icon{color:#e05050;}
+.sb-profile-version{text-align:center;font-size:.75rem;color:#bbb;padding:.75rem 1.25rem 0;}
+.sb-sheet-title{font-size:1.05rem;font-weight:700;color:#2d1b4e;margin:0 0 1rem;padding:0 1.25rem;}
 /* Auth tabs */
 .sb-tabs{display:flex;border-radius:.6rem;overflow:hidden;border:2px solid #e2d4f0;margin-bottom:1rem;}
 .sb-tab{flex:1;padding:.55rem;background:none;border:none;font-size:.875rem;font-weight:600;color:#888;cursor:pointer;transition:background .15s,color .15s;}

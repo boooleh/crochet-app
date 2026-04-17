@@ -89,6 +89,7 @@ function _applyDataToLocalStorage(d) {
 
 async function _pushToSupabase() {
   if (!_syncEnabled) return;
+  _updateAvatarDot('syncing');
   try {
     const now = Date.now();
     const payload = {
@@ -102,9 +103,11 @@ async function _pushToSupabase() {
     if (error) throw error;
     localStorage.setItem('crochet_sync_at', String(now));
     _updateSyncBadge(true);
+    _updateAvatarDot('synced');
   } catch (err) {
     console.error('[Sync] Push failed:', err);
     _updateSyncBadge(false);
+    _updateAvatarDot('error');
   }
 }
 
@@ -142,6 +145,81 @@ function queueSupabaseSync() {
   if (!_syncEnabled) return;
   clearTimeout(_syncTimer);
   _syncTimer = setTimeout(_pushToSupabase, 2000);
+}
+
+// ── Profile sheet ─────────────────────────────────────────────────────
+
+function sbShowProfileSheet() {
+  // Update content before showing
+  const email  = _currentUser?.email || 'Not signed in';
+  const syncLbl = _syncEnabled ? '● Synced' : '● Offline mode';
+  const el = document.getElementById('sb-profile-email-lbl');
+  const sl = document.getElementById('sb-profile-sync-lbl');
+  if (el) el.textContent = email;
+  if (sl) { sl.textContent = syncLbl; sl.style.color = _syncEnabled ? '#2a9d5c' : '#aaa'; }
+
+  // Set large avatar initial
+  const av = document.getElementById('sb-profile-avatar-large');
+  if (av && _currentUser?.email) av.textContent = _currentUser.email[0].toUpperCase();
+
+  // Hide sign-out + change-pw if not signed in
+  const showAuth = !!_currentUser;
+  ['sb-signout-btn','sb-change-pw-btn'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.style.display = showAuth ? 'flex' : 'none';
+  });
+
+  const scrim = document.getElementById('sb-profile-scrim');
+  if (scrim) { scrim.style.display = 'flex'; requestAnimationFrame(() => scrim.style.opacity = '1'); }
+}
+
+function sbHideProfileSheet() {
+  const scrim = document.getElementById('sb-profile-scrim');
+  if (scrim) scrim.style.display = 'none';
+}
+
+// ── Change password sheet ─────────────────────────────────────────────
+
+function sbShowChangePw() {
+  const scrim = document.getElementById('sb-changepw-scrim');
+  if (scrim) scrim.style.display = 'flex';
+  document.getElementById('sb-new-pw').value     = '';
+  document.getElementById('sb-confirm-pw').value = '';
+  document.getElementById('sb-changepw-msg').textContent = '';
+}
+
+function sbHideChangePw() {
+  const scrim = document.getElementById('sb-changepw-scrim');
+  if (scrim) scrim.style.display = 'none';
+}
+
+async function sbDoChangePw() {
+  const newPw  = document.getElementById('sb-new-pw').value;
+  const confPw = document.getElementById('sb-confirm-pw').value;
+  const msg    = document.getElementById('sb-changepw-msg');
+
+  if (newPw.length < 6)      { msg.textContent = 'Password must be at least 6 characters.'; msg.style.color = '#d00'; return; }
+  if (newPw !== confPw)      { msg.textContent = 'Passwords don\'t match.'; msg.style.color = '#d00'; return; }
+
+  msg.textContent = 'Saving…'; msg.style.color = '#888';
+  const { error } = await _sb.auth.updateUser({ password: newPw });
+  if (error) { msg.textContent = error.message; msg.style.color = '#d00'; return; }
+  msg.textContent = '✅ Password updated!'; msg.style.color = '#2a9d5c';
+  setTimeout(sbHideChangePw, 1500);
+}
+
+// ── Avatar dot state ──────────────────────────────────────────────────
+
+function _updateAvatarDot(state) { // 'synced' | 'syncing' | 'error' | 'offline'
+  document.querySelectorAll('.sb-avatar-dot').forEach(dot => {
+    dot.className = 'sb-avatar-dot' + (state !== 'offline' ? ' ' + state : '');
+  });
+  // Also update initials with first letter of email
+  if (_currentUser?.email) {
+    document.querySelectorAll('.sb-avatar-initials').forEach(el => {
+      el.textContent = _currentUser.email[0].toUpperCase();
+    });
+  }
 }
 
 // ── Auth overlay UI ───────────────────────────────────────────────────
@@ -424,9 +502,11 @@ async function initSupabase() {
         _pushToSupabase();
       }
       _updateSyncBadge(true);
+      _updateAvatarDot('synced');
     } else {
       _syncEnabled = false;
       _updateSyncBadge(false);
+      _updateAvatarDot('offline');
       _updateUserChip(null);
     }
   });
