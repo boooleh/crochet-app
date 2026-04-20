@@ -1,4 +1,4 @@
-const CACHE = 'crochet-app-v22';
+const CACHE = 'crochet-app-v1-1-0';
 const ASSETS = [
   './',
   './index.html',
@@ -8,11 +8,12 @@ const ASSETS = [
   './icons/icon-512.png'
 ];
 
-// JS files are NOT pre-cached — always fetched fresh from network
+// JS files and version.txt are NOT pre-cached — always fetched fresh from network
 const NETWORK_FIRST = [
   'app.js',
   'supabase-config.js',
-  'supabase-sync.js'
+  'supabase-sync.js',
+  'version.txt'
 ];
 
 self.addEventListener('install', e => {

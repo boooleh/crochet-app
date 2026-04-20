@@ -135,7 +135,11 @@ function _applyDataToLocalStorage(d) {
 
 async function _pushToSupabase() {
   if (!_syncEnabled) return;
-  _updateAvatarDot('syncing');
+
+  // Only show the orange syncing dot if the push takes longer than 900ms.
+  // This prevents constant flashing on routine saves (step checks, etc.).
+  const syncingTimer = setTimeout(() => _updateAvatarDot('syncing'), 900);
+
   try {
     const now = Date.now();
     const payload = {
@@ -143,14 +147,23 @@ async function _pushToSupabase() {
       data:       { ..._gatherAllData(), savedAt: now },
       updated_at: new Date().toISOString()
     };
-    const { error } = await _sb
-      .from('user_data')
-      .upsert(payload, { onConflict: 'user_id' });
+
+    // Race the upsert against a 20-second timeout so a hanging request
+    // can't leave the dot stuck orange forever.
+    const { error } = await Promise.race([
+      (async () => _sb.from('user_data').upsert(payload, { onConflict: 'user_id' }))(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Sync timeout after 20s')), 20000)
+      )
+    ]);
+
+    clearTimeout(syncingTimer);
     if (error) throw error;
     localStorage.setItem('crochet_sync_at', String(now));
     _updateSyncBadge(true);
     _updateAvatarDot('synced');
   } catch (err) {
+    clearTimeout(syncingTimer);
     console.error('[Sync] Push failed:', err?.message || err?.code || JSON.stringify(err));
     _updateSyncBadge(false);
     _updateAvatarDot('error');
