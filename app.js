@@ -331,6 +331,13 @@ function renderProjectDetail(p){
           padding:13px 32px;border-radius:99px;font-size:15px;font-weight:800;
           font-family:inherit;cursor:pointer;box-shadow:0 4px 16px rgba(106,79,196,.35)">
           \uD83C\uDF89 Finish project</button>
+      </div>
+      <div id="finish-anyway-wrap-${p.id}" style="display:${doneCount===total?'none':'block'};margin-top:16px;text-align:center">
+        <button onclick="finishProject(${p.id})"
+          style="background:none;border:1.5px solid #b0a0d8;color:#6A4FC4;
+          padding:10px 24px;border-radius:99px;font-size:13px;font-weight:700;
+          font-family:inherit;cursor:pointer;opacity:0.85">
+          Mark as finished</button>
       </div>`:''}
     </div>`:'';
 
@@ -790,6 +797,8 @@ function refreshProjSteps(id){
   });
   const finishWrap=document.getElementById('finish-btn-wrap-'+id);
   if(finishWrap) finishWrap.style.display=(total>0&&doneCount===total)?'block':'none';
+  const finishAnywayWrap=document.getElementById('finish-anyway-wrap-'+id);
+  if(finishAnywayWrap) finishAnywayWrap.style.display=(total>0&&doneCount<total)?'block':'none';
 }
 
 function finishProject(id){
