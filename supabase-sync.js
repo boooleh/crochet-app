@@ -170,7 +170,7 @@ async function _pushToSupabase() {
   }
 }
 
-async function _pullFromSupabase() {
+async function _pullFromSupabase(force = false) {
   if (!_sb || !_currentUser) return false;
   try {
     const { data: row, error } = await _sb
@@ -190,12 +190,23 @@ async function _pullFromSupabase() {
       const localIsEmpty   = localPatterns.length === 0 && localProjects.length === 0;
 
       console.log('[Sync] Pull check — cloudSavedAt:', cloudSavedAt, 'localSavedAt:', localSavedAt,
-        '| cloud patterns:', cloudPatterns.length, 'local patterns:', localPatterns.length);
+        '| cloud patterns:', cloudPatterns.length, 'local patterns:', localPatterns.length,
+        '| force:', force);
 
       // Safety net: if local is empty but cloud has data, always pull regardless of timestamps.
       // This handles fresh installs, cleared storage, and missing savedAt fields.
       if (localIsEmpty && cloudHasData) {
         console.log('[Sync] Local empty + cloud has data → force pulling');
+        _applyDataToLocalStorage(row.data);
+        localStorage.setItem('crochet_sync_at', String(cloudSavedAt || Date.now()));
+        return true;
+      }
+
+      // When triggered manually (force=true), always pull from cloud so the user
+      // can recover from a "stuck" up-to-date state where timestamps match but
+      // the phone is missing data the desktop saved.
+      if (force && cloudHasData) {
+        console.log('[Sync] Forced pull — applying cloud data regardless of timestamps');
         _applyDataToLocalStorage(row.data);
         localStorage.setItem('crochet_sync_at', String(cloudSavedAt || Date.now()));
         return true;
@@ -402,7 +413,7 @@ async function sbTriggerSync() {
 
 async function _doSync() {
   _setSyncBtn('⟳', 'Syncing…', '#7B4FD8');
-  const pulled = await _pullFromSupabase();
+  const pulled = await _pullFromSupabase(true); // force=true: always apply cloud data on manual sync
   if (pulled) {
     if (typeof patterns !== 'undefined') {
       patterns   = JSON.parse(localStorage.getItem('crochet_patterns_v2') || '[]');
@@ -510,7 +521,7 @@ function _initPullToRefresh() {
     if (scrollable && scrollable.scrollTop > 10) return;
 
     _showPill('⟳  Syncing…');
-    const pulled = await _pullFromSupabase();
+    const pulled = await _pullFromSupabase(true); // force=true: always apply cloud data on pull-to-refresh
     if (pulled) {
       if (typeof patterns !== 'undefined') {
         patterns   = JSON.parse(localStorage.getItem('crochet_patterns_v2') || '[]');
