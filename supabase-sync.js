@@ -146,20 +146,22 @@ async function _pushToSupabase() {
   let lastErr;
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     if (attempt > 0) {
-      // Wait before retrying
       await new Promise(r => setTimeout(r, RETRY_DELAYS[attempt - 1]));
-      if (!_syncEnabled) break; // user signed out while waiting
+      if (!_syncEnabled) break;
       console.log(`[Sync] Retrying push (attempt ${attempt + 1}/${MAX_RETRIES})…`);
     }
     try {
-      const now = Date.now();
-      const payload = {
-        user_id:    _currentUser.id,
-        data:       { ..._gatherAllData(), savedAt: now },
-        updated_at: new Date().toISOString()
-      };
+      const now  = Date.now();
+      const data = { ..._gatherAllData(), savedAt: now };
 
-      // Race each attempt against a 15-second timeout
+      // Warn if payload is large — images stored as base64 can exceed server limits
+      const payloadSize = JSON.stringify(data).length;
+      if (payloadSize > 4_000_000) {
+        console.warn('[Sync] Payload is very large:', Math.round(payloadSize / 1024), 'KB — this may fail');
+      }
+
+      const payload = { user_id: _currentUser.id, data, updated_at: new Date().toISOString() };
+
       const { error } = await Promise.race([
         (async () => _sb.from('user_data').upsert(payload, { onConflict: 'user_id' }))(),
         new Promise((_, reject) =>
@@ -178,16 +180,18 @@ async function _pushToSupabase() {
       return;
     } catch (err) {
       lastErr = err;
-      console.warn(`[Sync] Push attempt ${attempt + 1} failed:`, err?.message || err?.code);
+      // Log the full error so we can diagnose what's going wrong
+      console.warn(`[Sync] Push attempt ${attempt + 1} failed:`, err?.message, '| code:', err?.code, '| details:', err?.details, '| hint:', err?.hint);
     }
   }
 
-  // All attempts failed
+  // All attempts failed — show the actual error reason to help diagnose
   clearTimeout(syncingTimer);
-  console.error('[Sync] Push failed after', MAX_RETRIES, 'attempts:', lastErr?.message);
+  const reason = lastErr?.message || lastErr?.code || 'Unknown error';
+  console.error('[Sync] Push failed after', MAX_RETRIES, 'attempts. Last error:', reason);
   _updateSyncBadge(false);
   _updateAvatarDot('error');
-  if (typeof showSimpleToast === 'function') showSimpleToast('⚠️ Sync failed — saved locally');
+  if (typeof showSimpleToast === 'function') showSimpleToast(`⚠️ Sync failed: ${reason}`);
 }
 
 async function _pullFromSupabase(force = false) {
