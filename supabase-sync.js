@@ -6,6 +6,7 @@ let _sb           = null;   // Supabase client instance
 let _currentUser  = null;   // Logged-in user object (or null)
 let _syncTimer    = null;   // Debounce timer handle
 let _syncEnabled  = false;  // True once client is ready and user is signed in
+let _dotState     = 'offline'; // Tracks real dot state so profile sheet doesn't override it
 
 // ── Client init ───────────────────────────────────────────────────────
 
@@ -244,16 +245,19 @@ function queueSupabaseSync() {
 // ── Profile sheet ─────────────────────────────────────────────────────
 
 function sbShowProfileSheet() {
-  // Sync the dot to match actual state (fixes gray/green inconsistency)
-  _updateAvatarDot(_syncEnabled ? 'synced' : 'offline');
+  // Use the real tracked dot state — never override an error with a false green
+  _updateAvatarDot(_dotState);
 
   // Update content before showing
-  const email  = _currentUser?.email || 'Not signed in';
-  const syncLbl = _syncEnabled ? '● Synced' : '● Offline mode';
+  const email = _currentUser?.email || 'Not signed in';
+  const syncLblMap = { synced: '● Synced', syncing: '● Syncing…', error: '● Sync error', offline: '● Offline mode' };
+  const syncColMap = { synced: '#2a9d5c', syncing: '#7B4FD8', error: '#e05', offline: '#aaa' };
+  const syncLbl = syncLblMap[_dotState] || '● Offline mode';
+  const syncCol = syncColMap[_dotState] || '#aaa';
   const el = document.getElementById('sb-profile-email-lbl');
   const sl = document.getElementById('sb-profile-sync-lbl');
   if (el) el.textContent = email;
-  if (sl) { sl.textContent = syncLbl; sl.style.color = _syncEnabled ? '#2a9d5c' : '#aaa'; }
+  if (sl) { sl.textContent = syncLbl; sl.style.color = syncCol; }
 
   // Set large avatar initial
   const av = document.getElementById('sb-profile-avatar-large');
@@ -308,6 +312,7 @@ async function sbDoChangePw() {
 // ── Avatar dot state ──────────────────────────────────────────────────
 
 function _updateAvatarDot(state) { // 'synced' | 'syncing' | 'error' | 'offline'
+  _dotState = state; // always remember the real state
   document.querySelectorAll('.sb-avatar-dot').forEach(dot => {
     dot.className = 'sb-avatar-dot' + (state !== 'offline' ? ' ' + state : '');
   });
