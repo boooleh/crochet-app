@@ -53,6 +53,11 @@
             <option value="">All</option>
             <option>Active</option><option>Frogged</option>
           </select>
+          <select id="proj-sort" onchange="renderProjects()">
+            <option value="updated">Last updated</option>
+            <option value="name">Name A–Z</option>
+            <option value="started">Date started</option>
+          </select>
         </div>
         <div class="grid" id="proj-grid"></div>
       </div>
