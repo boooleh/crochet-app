@@ -49,10 +49,6 @@
         </div>
         <div class="filters">
           <input type="text" id="proj-search" placeholder="Search projects…" oninput="renderProjects()"/>
-          <select id="proj-status-filter" onchange="renderProjects()">
-            <option value="">All</option>
-            <option>Active</option><option>Frogged</option>
-          </select>
           <select id="proj-sort" onchange="renderProjects()">
             <option value="updated">Last updated</option>
             <option value="name">Name A–Z</option>
@@ -189,7 +185,10 @@
   <div class="sb-profile-sheet finished-projects-sheet" onclick="event.stopPropagation()">
     <div class="sb-profile-handle"></div>
     <div class="finished-projects-header">
-      <h2 class="finished-projects-title">Finished projects</h2>
+      <div class="finished-projects-header-left">
+        <h2 class="finished-projects-title">Finished projects</h2>
+        <span class="finished-count-lbl" id="finished-count-lbl"></span>
+      </div>
       <button class="finished-projects-close" onclick="hideFinishedProjectsSheet()" aria-label="Close">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>

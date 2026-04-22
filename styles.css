@@ -565,22 +565,32 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 }
 
 /* ── Finished projects sheet ─────────────────────────────────────── */
-.finished-projects-sheet{max-height:80vh;display:flex;flex-direction:column;}
+.finished-projects-sheet{max-height:85vh;display:flex;flex-direction:column;}
 .finished-projects-header{display:flex;align-items:center;justify-content:space-between;padding:.25rem 1.25rem 1rem;}
+.finished-projects-header-left{display:flex;align-items:baseline;gap:.6rem;}
 .finished-projects-title{font-size:1.05rem;font-weight:700;color:#2d1b4e;margin:0;}
-.finished-projects-close{background:none;border:none;cursor:pointer;color:#9b8ec4;padding:.25rem;line-height:1;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.finished-count-lbl{font-size:.78rem;color:#9b8ec4;font-weight:500;}
+.finished-projects-close{background:none;border:none;cursor:pointer;color:#9b8ec4;padding:.35rem;line-height:1;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s;}
 .finished-projects-close:hover{background:#f0eaf8;color:#7B4FD8;}
-.finished-projects-list{overflow-y:auto;padding:0 .75rem 1rem;flex:1;}
-.finished-proj-row{display:flex;align-items:center;gap:.875rem;padding:.7rem .5rem;border-radius:1rem;cursor:pointer;transition:background .15s;}
-.finished-proj-row:hover{background:#faf7ff;}
-.finished-proj-row:active{background:#f0eaf8;}
-.finished-proj-photo{width:52px;height:52px;border-radius:.75rem;object-fit:cover;flex-shrink:0;}
-.finished-proj-photo-placeholder{width:52px;height:52px;border-radius:.75rem;background:linear-gradient(135deg,#fce7f3,#e8d5f5);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.finished-proj-info{flex:1;min-width:0;}
-.finished-proj-name{font-size:.95rem;font-weight:600;color:#2d1b4e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.finished-proj-sub{font-size:.78rem;color:#9b8ec4;margin-top:.15rem;}
-.finished-proj-chevron{color:#c8b8e0;flex-shrink:0;}
-.finished-empty{padding:2rem 1rem;text-align:center;color:#aaa;font-size:.9rem;line-height:1.55;}
+.finished-projects-list{overflow-y:auto;flex:1;}
+/* Card grid */
+.finished-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 1rem 1.5rem;}
+.finished-card{background:#fff;border:1.5px solid #f0eaf8;border-radius:1rem;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.finished-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(123,79,216,.12);}
+.finished-card:active{transform:scale(.97);}
+.finished-card-media{position:relative;}
+.finished-card-photo{width:100%;height:130px;object-fit:cover;display:block;}
+.finished-card-photo-placeholder{width:100%;height:130px;background:linear-gradient(135deg,#fce7f3,#e8d5f5);display:flex;align-items:center;justify-content:center;}
+.finished-card-badge{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:#ec4899;color:#fff;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(236,72,153,.35);}
+.finished-card-body{padding:.65rem .75rem .75rem;}
+.finished-card-name{font-size:.88rem;font-weight:700;color:#2d1b4e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.finished-card-meta{font-size:.72rem;color:#9b8ec4;margin-top:.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.finished-card-date{font-size:.7rem;color:#c8b8e0;margin-top:.2rem;}
+/* Empty state */
+.finished-empty{padding:3rem 1.5rem 2rem;text-align:center;}
+.finished-empty-icon{font-size:2.5rem;margin-bottom:.75rem;}
+.finished-empty-title{font-size:1rem;font-weight:700;color:#2d1b4e;margin-bottom:.4rem;}
+.finished-empty-sub{font-size:.85rem;color:#aaa;line-height:1.55;}
 
 /* Badge on finished-projects button */
 .sb-profile-action{position:relative;}
