@@ -633,7 +633,17 @@ async function initSupabase() {
   // ── Pull fresh data whenever the user switches back to the app ────
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState === 'visible' && _syncEnabled) {
-      const pulled = await _pullFromSupabase();
+      // If there are unsaved local changes queued, flush them first so we
+      // don't overwrite them when we pull from the cloud.
+      if (_syncTimer) {
+        clearTimeout(_syncTimer);
+        _syncTimer = null;
+        await _pushToSupabase();
+      }
+
+      // Always force-pull so the phone picks up changes made on other devices
+      // without requiring the user to manually tap the sync button.
+      const pulled = await _pullFromSupabase(true);
       if (pulled) {
         if (typeof patterns !== 'undefined') {
           patterns   = JSON.parse(localStorage.getItem('crochet_patterns_v2') || '[]');
