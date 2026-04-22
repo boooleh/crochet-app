@@ -137,50 +137,69 @@ function _applyDataToLocalStorage(d) {
 async function _pushToSupabase() {
   if (!_syncEnabled) return;
 
+  const MAX_RETRIES  = 3;
+  const RETRY_DELAYS = [3000, 6000, 12000]; // wait 3s, 6s, 12s between attempts
+
   // Only show the orange syncing dot if the push takes longer than 900ms.
-  // This prevents constant flashing on routine saves (step checks, etc.).
   const syncingTimer = setTimeout(() => _updateAvatarDot('syncing'), 900);
 
-  try {
-    const now = Date.now();
-    const payload = {
-      user_id:    _currentUser.id,
-      data:       { ..._gatherAllData(), savedAt: now },
-      updated_at: new Date().toISOString()
-    };
+  let lastErr;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      // Wait before retrying
+      await new Promise(r => setTimeout(r, RETRY_DELAYS[attempt - 1]));
+      if (!_syncEnabled) break; // user signed out while waiting
+      console.log(`[Sync] Retrying push (attempt ${attempt + 1}/${MAX_RETRIES})…`);
+    }
+    try {
+      const now = Date.now();
+      const payload = {
+        user_id:    _currentUser.id,
+        data:       { ..._gatherAllData(), savedAt: now },
+        updated_at: new Date().toISOString()
+      };
 
-    // Race the upsert against a 20-second timeout so a hanging request
-    // can't leave the dot stuck orange forever.
-    const { error } = await Promise.race([
-      (async () => _sb.from('user_data').upsert(payload, { onConflict: 'user_id' }))(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Sync timeout after 20s')), 20000)
-      )
-    ]);
+      // Race each attempt against a 15-second timeout
+      const { error } = await Promise.race([
+        (async () => _sb.from('user_data').upsert(payload, { onConflict: 'user_id' }))(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Sync timeout after 15s')), 15000)
+        )
+      ]);
 
-    clearTimeout(syncingTimer);
-    if (error) throw error;
-    localStorage.setItem('crochet_sync_at', String(now));
-    _updateSyncBadge(true);
-    _updateAvatarDot('synced');
-    if (typeof showSimpleToast === 'function') showSimpleToast('☁️ Saved to cloud');
-  } catch (err) {
-    clearTimeout(syncingTimer);
-    console.error('[Sync] Push failed:', err?.message || err?.code || JSON.stringify(err));
-    _updateSyncBadge(false);
-    _updateAvatarDot('error');
-    if (typeof showSimpleToast === 'function') showSimpleToast('⚠️ Sync failed — saved locally');
+      if (error) throw error;
+
+      // Success
+      clearTimeout(syncingTimer);
+      localStorage.setItem('crochet_sync_at', String(now));
+      _updateSyncBadge(true);
+      _updateAvatarDot('synced');
+      if (typeof showSimpleToast === 'function') showSimpleToast('☁️ Saved to cloud');
+      return;
+    } catch (err) {
+      lastErr = err;
+      console.warn(`[Sync] Push attempt ${attempt + 1} failed:`, err?.message || err?.code);
+    }
   }
+
+  // All attempts failed
+  clearTimeout(syncingTimer);
+  console.error('[Sync] Push failed after', MAX_RETRIES, 'attempts:', lastErr?.message);
+  _updateSyncBadge(false);
+  _updateAvatarDot('error');
+  if (typeof showSimpleToast === 'function') showSimpleToast('⚠️ Sync failed — saved locally');
 }
 
 async function _pullFromSupabase(force = false) {
   if (!_sb || !_currentUser) return false;
   try {
-    const { data: row, error } = await _sb
-      .from('user_data')
-      .select('data')
-      .eq('user_id', _currentUser.id)
-      .maybeSingle();
+    // Race the pull against a 15-second timeout — without this it can hang forever
+    const { data: row, error } = await Promise.race([
+      _sb.from('user_data').select('data').eq('user_id', _currentUser.id).maybeSingle(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Pull timeout after 15s')), 15000)
+      )
+    ]);
     if (error) throw error;
     if (row && row.data) {
       const cloudSavedAt   = row.data.savedAt || 0;
