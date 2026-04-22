@@ -50,8 +50,8 @@
         <div class="filters">
           <input type="text" id="proj-search" placeholder="Search projects…" oninput="renderProjects()"/>
           <select id="proj-status-filter" onchange="renderProjects()">
-            <option value="">All Statuses</option>
-            <option>Active</option><option>Done</option><option>Frogged</option>
+            <option value="">All</option>
+            <option>Active</option><option>Frogged</option>
           </select>
         </div>
         <div class="grid" id="proj-grid"></div>
@@ -153,6 +153,12 @@
     <div class="sb-profile-divider"></div>
 
     <!-- Actions -->
+    <button class="sb-profile-action" onclick="sbHideProfileSheet();showFinishedProjectsSheet()">
+      <span class="sb-profile-action-icon">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </span> Finished projects
+      <span class="sb-finished-badge" id="sb-finished-badge"></span>
+    </button>
     <button class="sb-profile-action" onclick="sbTriggerSync();sbHideProfileSheet()">
       <span class="sb-profile-action-icon">☁</span> Sync now
     </button>
@@ -170,6 +176,20 @@
 
     <div class="sb-profile-divider"></div>
     <div class="sb-profile-version">Crochet Corner · Version 1.0</div>
+  </div>
+</div>
+
+<!-- ── Finished projects sheet ──────────────────────────────────── -->
+<div id="finished-projects-scrim" class="sb-profile-scrim" style="display:none" onclick="hideFinishedProjectsSheet()">
+  <div class="sb-profile-sheet finished-projects-sheet" onclick="event.stopPropagation()">
+    <div class="sb-profile-handle"></div>
+    <div class="finished-projects-header">
+      <h2 class="finished-projects-title">Finished projects</h2>
+      <button class="finished-projects-close" onclick="hideFinishedProjectsSheet()" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="finished-projects-list" class="finished-projects-list"></div>
   </div>
 </div>
 
