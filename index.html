@@ -48,7 +48,7 @@
           <span class="count-lbl" id="proj-count-lbl">0 projects</span>
         </div>
         <div class="filters">
-          <input type="text" id="proj-search" placeholder="Search projects…" oninput="renderProjects()"/>
+          <input type="text" id="proj-search" placeholder="Search projects…" oninput="renderProjects()" autocomplete="off"/>
           <select id="proj-sort" onchange="renderProjects()">
             <option value="updated">Last updated</option>
             <option value="name">Name A–Z</option>
@@ -82,7 +82,7 @@
           <span class="count-lbl" id="lib-count-lbl">0 patterns</span>
         </div>
         <div class="filters">
-          <input type="text" id="lib-search" placeholder="Search…" oninput="renderLibrary()"/>
+          <input type="text" id="lib-search" placeholder="Search…" oninput="renderLibrary()" autocomplete="off"/>
           <select id="lib-cat-filter" onchange="renderLibrary()">
             <option value="">All categories</option>
             <option>Amigurumi</option><option>Blanket</option><option>Hat</option>
