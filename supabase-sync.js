@@ -162,11 +162,13 @@ async function _pushToSupabase() {
     localStorage.setItem('crochet_sync_at', String(now));
     _updateSyncBadge(true);
     _updateAvatarDot('synced');
+    if (typeof showSimpleToast === 'function') showSimpleToast('☁️ Saved to cloud');
   } catch (err) {
     clearTimeout(syncingTimer);
     console.error('[Sync] Push failed:', err?.message || err?.code || JSON.stringify(err));
     _updateSyncBadge(false);
     _updateAvatarDot('error');
+    if (typeof showSimpleToast === 'function') showSimpleToast('⚠️ Sync failed — saved locally');
   }
 }
 
@@ -580,7 +582,7 @@ async function initSupabase() {
         const localProjects = JSON.parse(localStorage.getItem('crochet_projects_v1') || '[]');
         if (localPatterns.length > 0 || localProjects.length > 0) {
           console.log('[Sync] Local has data, pushing to cloud');
-          _pushToSupabase();
+          await _pushToSupabase(); // await so the dot only goes green once upload is done
         } else {
           console.log('[Sync] Local is empty — skipping push to protect cloud data');
         }
