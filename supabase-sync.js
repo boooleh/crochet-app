@@ -92,44 +92,31 @@ async function supabaseSignOut() {
 
 // ── Data helpers ──────────────────────────────────────────────────────
 
-// Collects everything from localStorage into one object (same shape as backup export)
+// Collects text data from localStorage for cloud sync.
+// Images and PDFs are intentionally excluded — they are large base64 strings
+// that cause timeouts on mobile connections. They remain local-only.
 function _gatherAllData() {
   const pats  = JSON.parse(localStorage.getItem('crochet_patterns_v2') || '[]');
   const projs = JSON.parse(localStorage.getItem('crochet_projects_v1') || '[]');
   const d = {
-    patterns:      pats,
-    projects:      projs,
-    patternImages: {},
-    patternPdfs:   {},
-    projectSteps:  {},
-    projectPhotos: {}
+    patterns:     pats,
+    projects:     projs,
+    projectSteps: {}
   };
-  pats.forEach(p => {
-    const imgs = (typeof getPatternImages === 'function') ? getPatternImages(p.id) : [];
-    if (imgs.length) d.patternImages[p.id] = imgs;
-    const pdf = localStorage.getItem('crochet_pdf_' + p.id);
-    if (pdf) d.patternPdfs[p.id] = pdf;
-  });
   projs.forEach(p => {
     const steps = JSON.parse(localStorage.getItem('crochet_psteps_' + p.id) || '[]');
     if (steps.length) d.projectSteps[p.id] = steps;
-    if (p.photoKey) {
-      const photo = localStorage.getItem(p.photoKey);
-      if (photo) d.projectPhotos[p.photoKey] = photo;
-    }
   });
   return d;
 }
 
-// Writes a data blob (from Supabase) back into localStorage
+// Writes a data blob (from Supabase) back into localStorage.
+// Only applies text data — images and PDFs stay local-only and are never overwritten.
 function _applyDataToLocalStorage(d) {
   if (!d) return;
   if (Array.isArray(d.patterns)) localStorage.setItem('crochet_patterns_v2', JSON.stringify(d.patterns));
   if (Array.isArray(d.projects)) localStorage.setItem('crochet_projects_v1', JSON.stringify(d.projects));
-  Object.entries(d.patternImages || {}).forEach(([id, imgs]) => localStorage.setItem('crochet_pat_imgs_' + id, JSON.stringify(imgs)));
-  Object.entries(d.patternPdfs   || {}).forEach(([id, pdf])  => localStorage.setItem('crochet_pdf_' + id, pdf));
-  Object.entries(d.projectSteps  || {}).forEach(([id, s])    => localStorage.setItem('crochet_psteps_' + id, JSON.stringify(s)));
-  Object.entries(d.projectPhotos || {}).forEach(([key, ph])  => localStorage.setItem(key, ph));
+  Object.entries(d.projectSteps || {}).forEach(([id, s]) => localStorage.setItem('crochet_psteps_' + id, JSON.stringify(s)));
 }
 
 // ── Push / Pull ───────────────────────────────────────────────────────
