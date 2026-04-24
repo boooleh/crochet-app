@@ -234,12 +234,19 @@
   padding:12px 16px;display:none;align-items:center;justify-content:space-between;
   gap:12px;box-shadow:0 -2px 16px rgba(0,0,0,.18);font-family:var(--font);">
   <span style="font-size:14px;font-weight:600;">✨ Ny version tillgänglig</span>
-  <button onclick="location.reload(true)"
-    style="background:#fff;color:#6A4FC4;border:none;border-radius:99px;
-    padding:8px 18px;font-size:13px;font-weight:800;cursor:pointer;
-    font-family:inherit;white-space:nowrap;flex-shrink:0;">
-    Uppdatera nu
-  </button>
+  <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+    <button onclick="(function(){const r=document.getElementById('version-banner');if(r)r.style.display='none';try{const v=document.querySelector('meta[name=app-version]');localStorage.setItem('crochet_update_seen',v?v.content:'0');}catch(e){}})();"
+      style="background:rgba(255,255,255,0.25);color:#fff;border:none;border-radius:99px;
+      padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
+      Later
+    </button>
+    <button id="update-btn" onclick="(function(){try{fetch('version.txt?t='+Date.now()).then(r=>r.text()).then(v=>{localStorage.setItem('crochet_update_seen',v.trim());location.reload(true);});}catch(e){location.reload(true);}})();"
+      style="background:#fff;color:#6A4FC4;border:none;border-radius:99px;
+      padding:8px 18px;font-size:13px;font-weight:800;cursor:pointer;
+      font-family:inherit;white-space:nowrap;">
+      Uppdatera nu
+    </button>
+  </div>
 </div>
 
 <!-- ── Auth overlay (Supabase sign-in) ─────────────────────────────── -->
@@ -362,8 +369,9 @@
       const remote = (await res.text()).trim();
       const local  = (typeof APP_VERSION !== 'undefined') ? APP_VERSION.trim() : '0.0.0';
 
-      // Simple semver comparison — newer remote shows the banner
-      if (remote !== local && isNewer(remote, local)) {
+      // Show banner only if remote is newer AND user hasn't already seen this version
+      const dismissed = localStorage.getItem('crochet_update_seen');
+      if (isNewer(remote, local) && dismissed !== remote) {
         const banner = document.getElementById('version-banner');
         if (banner) banner.style.display = 'flex';
       }
