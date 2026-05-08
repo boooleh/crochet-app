@@ -41,7 +41,7 @@ async function sendMagicLink(email) {
 }
 
 async function supabaseSignOut() {
-  console.log('[Sync] supabaseSignOut() called');
+  if(typeof APP_DEBUG!=='undefined'&&APP_DEBUG)console.log('[Sync] supabaseSignOut() called');
 
   // Show the signing-out loading overlay immediately so the user gets
   // feedback while we wait for signOut + reload (up to ~1.5s worst case).
@@ -135,7 +135,7 @@ async function _pushToSupabase() {
     if (attempt > 0) {
       await new Promise(r => setTimeout(r, RETRY_DELAYS[attempt - 1]));
       if (!_syncEnabled) break;
-      console.log(`[Sync] Retrying push (attempt ${attempt + 1}/${MAX_RETRIES})…`);
+      if(typeof APP_DEBUG!=='undefined'&&APP_DEBUG)console.log(`[Sync] Retrying push (attempt ${attempt + 1}/${MAX_RETRIES})…`);
     }
     try {
       const now  = Date.now();
@@ -202,14 +202,14 @@ async function _pullFromSupabase(force = false) {
       const cloudHasData   = cloudPatterns.length > 0 || cloudProjects.length > 0;
       const localIsEmpty   = localPatterns.length === 0 && localProjects.length === 0;
 
-      console.log('[Sync] Pull check — cloudSavedAt:', cloudSavedAt, 'localSavedAt:', localSavedAt,
+      if(typeof APP_DEBUG!=='undefined'&&APP_DEBUG)console.log('[Sync] Pull check — cloudSavedAt:', cloudSavedAt, 'localSavedAt:', localSavedAt,
         '| cloud patterns:', cloudPatterns.length, 'local patterns:', localPatterns.length,
         '| force:', force);
 
       // Safety net: if local is empty but cloud has data, always pull regardless of timestamps.
       // This handles fresh installs, cleared storage, and missing savedAt fields.
       if (localIsEmpty && cloudHasData) {
-        console.log('[Sync] Local empty + cloud has data → force pulling');
+        if(typeof APP_DEBUG!=='undefined'&&APP_DEBUG)console.log('[Sync] Local empty + cloud has data → force pulling');
         _applyDataToLocalStorage(row.data);
         localStorage.setItem('crochet_sync_at', String(cloudSavedAt || Date.now()));
         return true;
@@ -219,7 +219,7 @@ async function _pullFromSupabase(force = false) {
       // can recover from a "stuck" up-to-date state where timestamps match but
       // the phone is missing data the desktop saved.
       if (force && cloudHasData) {
-        console.log('[Sync] Forced pull — applying cloud data regardless of timestamps');
+        if(typeof APP_DEBUG!=='undefined'&&APP_DEBUG)console.log('[Sync] Forced pull — applying cloud data regardless of timestamps');
         _applyDataToLocalStorage(row.data);
         localStorage.setItem('crochet_sync_at', String(cloudSavedAt || Date.now()));
         return true;
@@ -227,16 +227,16 @@ async function _pullFromSupabase(force = false) {
 
       // Normal path: only pull if cloud timestamp is strictly newer
       if (cloudSavedAt <= localSavedAt) {
-        console.log('[Sync] Local is up to date — skipping pull');
+        if(typeof APP_DEBUG!=='undefined'&&APP_DEBUG)console.log('[Sync] Local is up to date — skipping pull');
         return false;
       }
 
-      console.log('[Sync] Cloud is newer → pulling');
+      if(typeof APP_DEBUG!=='undefined'&&APP_DEBUG)console.log('[Sync] Cloud is newer → pulling');
       _applyDataToLocalStorage(row.data);
       localStorage.setItem('crochet_sync_at', String(cloudSavedAt));
       return true;
     }
-    console.log('[Sync] No cloud data found');
+    if(typeof APP_DEBUG!=='undefined'&&APP_DEBUG)console.log('[Sync] No cloud data found');
     return false;
   } catch (err) {
     console.error('[Sync] Pull failed:', err?.message || err?.code || JSON.stringify(err));
@@ -596,10 +596,10 @@ async function initSupabase() {
         const localPatterns = JSON.parse(localStorage.getItem('crochet_patterns_v2') || '[]');
         const localProjects = JSON.parse(localStorage.getItem('crochet_projects_v1') || '[]');
         if (localPatterns.length > 0 || localProjects.length > 0) {
-          console.log('[Sync] Local has data, pushing to cloud');
+          if(typeof APP_DEBUG!=='undefined'&&APP_DEBUG)console.log('[Sync] Local has data, pushing to cloud');
           await _pushToSupabase(); // await so the dot only goes green once upload is done
         } else {
-          console.log('[Sync] Local is empty — skipping push to protect cloud data');
+          if(typeof APP_DEBUG!=='undefined'&&APP_DEBUG)console.log('[Sync] Local is empty — skipping push to protect cloud data');
         }
       }
       _updateSyncBadge(true);

@@ -1,4 +1,4 @@
-const APP_VERSION = "1.5.3";
+const APP_VERSION = "1.5.4";
 
 // ── Image compression ──────────────────────────────────────────────────
 // Resizes & re-encodes a File/Blob to JPEG, max 1000px wide, ~78% quality.
@@ -24,16 +24,21 @@ function compressImage(file, maxW=1000, quality=0.78){
 // Compress, then upload to Supabase Storage if signed in.
 // Returns the public URL on success, or compressed base64 as fallback.
 async function compressAndUpload(file, storagePath){
-  const blob=await compressImage(file);
-  if(typeof uploadImageToSupabase==='function'){
-    const url=await uploadImageToSupabase(blob, storagePath);
-    if(url) return {type:'url', value:url};
+  try{
+    const blob=await compressImage(file);
+    if(typeof uploadImageToSupabase==='function'){
+      const url=await uploadImageToSupabase(blob, storagePath);
+      if(url) return {type:'url', value:url};
+    }
+    return new Promise(resolve=>{
+      const r=new FileReader();
+      r.onload=ev=>resolve({type:'b64', value:ev.target.result});
+      r.readAsDataURL(blob);
+    });
+  }catch(err){
+    showToast('Failed to process image: '+err.message);
+    return {type:'b64', value:null};
   }
-  return new Promise(resolve=>{
-    const r=new FileReader();
-    r.onload=ev=>resolve({type:'b64', value:ev.target.result});
-    r.readAsDataURL(blob);
-  });
 }
 
 
@@ -453,22 +458,26 @@ function toggleInfoStrip(header){
 
 // ── Photo handling ────────────────────────────────────────────────
 async function handlePhotoSelect(e,projId){
-  const file=e.target.files[0]; if(!file) return;
-  const p=projects.find(x=>x.id===projId); if(!p) return;
-  const result=await compressAndUpload(file,`projects/proj_${projId}_${Date.now()}.jpg`);
-  if(result.type==='url'){
-    // Clean up old Supabase image
-    if(p.photoUrl && typeof deleteImageFromSupabase==='function') deleteImageFromSupabase(p.photoUrl);
-    // Clean up old localStorage entry
-    if(p.photoKey){ localStorage.removeItem(p.photoKey); p.photoKey=null; }
-    p.photoUrl=result.value;
-  } else {
-    const key='crochet_photo_proj_'+projId;
-    localStorage.setItem(key,result.value);
-    if(p.photoKey && p.photoKey!==key) localStorage.removeItem(p.photoKey);
-    p.photoKey=key;
+  try{
+    const file=e.target.files[0]; if(!file) return;
+    const p=projects.find(x=>x.id===projId); if(!p) return;
+    const result=await compressAndUpload(file,`projects/proj_${projId}_${Date.now()}.jpg`);
+    if(result.type==='url'){
+      // Clean up old Supabase image
+      if(p.photoUrl && typeof deleteImageFromSupabase==='function') deleteImageFromSupabase(p.photoUrl);
+      // Clean up old localStorage entry
+      if(p.photoKey){ localStorage.removeItem(p.photoKey); p.photoKey=null; }
+      p.photoUrl=result.value;
+    } else {
+      const key='crochet_photo_proj_'+projId;
+      localStorage.setItem(key,result.value);
+      if(p.photoKey && p.photoKey!==key) localStorage.removeItem(p.photoKey);
+      p.photoKey=key;
+    }
+    saveProjects(); renderProjectDetail(p);
+  }catch(err){
+    showToast('Error updating project photo: '+err.message);
   }
-  saveProjects(); renderProjectDetail(p);
 }
 function removeProjectPhoto(projId){
   const p=projects.find(x=>x.id===projId);if(!p)return;
@@ -530,17 +539,25 @@ function addNewPatternImage(){
   inp.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
   document.body.appendChild(inp);
   inp.onchange=async e=>{
-    document.body.removeChild(inp);
-    const files=Array.from(e.target.files); if(!files.length) return;
-    for(const file of files){
-      const blob=await compressImage(file);
-      await new Promise(resolve=>{
-        const r=new FileReader();
-        r.onload=ev=>{ pendingPatternImages.push(ev.target.result); resolve(); };
-        r.readAsDataURL(blob);
-      });
+    try{
+      document.body.removeChild(inp);
+      const files=Array.from(e.target.files); if(!files.length) return;
+      for(const file of files){
+        try{
+          const blob=await compressImage(file);
+          await new Promise(resolve=>{
+            const r=new FileReader();
+            r.onload=ev=>{ pendingPatternImages.push(ev.target.result); resolve(); };
+            r.readAsDataURL(blob);
+          });
+        }catch(err){
+          showToast('Error processing image: '+err.message);
+        }
+      }
+      refreshNewPatternPhotos();
+    }catch(err){
+      showToast('Error adding pattern images: '+err.message);
     }
-    refreshNewPatternPhotos();
   };
   inp.click();
 }
@@ -575,15 +592,23 @@ function addPatternImageInEdit(patId){
   inp.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
   document.body.appendChild(inp);
   inp.onchange=async e=>{
-    document.body.removeChild(inp);
-    const files=Array.from(e.target.files); if(!files.length) return;
-    const imgs=getPatternImages(patId);
-    for(const file of files){
-      const result=await compressAndUpload(file,`patterns/pat_${patId}_${Date.now()}.jpg`);
-      imgs.push(result.value);
+    try{
+      document.body.removeChild(inp);
+      const files=Array.from(e.target.files); if(!files.length) return;
+      const imgs=getPatternImages(patId);
+      for(const file of files){
+        try{
+          const result=await compressAndUpload(file,`patterns/pat_${patId}_${Date.now()}.jpg`);
+          imgs.push(result.value);
+        }catch(err){
+          showToast('Error uploading image: '+err.message);
+        }
+      }
+      savePatternImages(patId,imgs);
+      refreshEditPhotos(patId);
+    }catch(err){
+      showToast('Error adding images to pattern: '+err.message);
     }
-    savePatternImages(patId,imgs);
-    refreshEditPhotos(patId);
   };
   inp.click();
 }
@@ -632,16 +657,24 @@ function addPatternImage(patId){
   inp.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
   document.body.appendChild(inp);
   inp.onchange=async e=>{
-    document.body.removeChild(inp);
-    const files=Array.from(e.target.files); if(!files.length) return;
-    const imgs=getPatternImages(patId);
-    for(const file of files){
-      const result=await compressAndUpload(file,`patterns/pat_${patId}_${Date.now()}.jpg`);
-      imgs.push(result.value);
+    try{
+      document.body.removeChild(inp);
+      const files=Array.from(e.target.files); if(!files.length) return;
+      const imgs=getPatternImages(patId);
+      for(const file of files){
+        try{
+          const result=await compressAndUpload(file,`patterns/pat_${patId}_${Date.now()}.jpg`);
+          imgs.push(result.value);
+        }catch(err){
+          showToast('Error uploading image: '+err.message);
+        }
+      }
+      savePatternImages(patId,imgs);
+      const p=patterns.find(x=>x.id===patId);
+      if(p) renderPatternDetail(p);
+    }catch(err){
+      showToast('Error adding images: '+err.message);
     }
-    savePatternImages(patId,imgs);
-    const p=patterns.find(x=>x.id===patId);
-    if(p) renderPatternDetail(p);
   };
   inp.click();
 }
@@ -1299,42 +1332,56 @@ function patternFormHTML(p){
   `;
 }
 async function saveNewPattern(){
-  const name=document.getElementById('f-name').value.trim();
-  if(!name){document.getElementById('f-name').style.borderColor='#e24b4a';return;}
-  const id=nextPatId++;
-  const sections=textToSections(document.getElementById('f-steps').value.trim());
-  patterns.push({id,name,
-    category:document.getElementById('f-cat').value,
-    difficulty:document.getElementById('f-diff').value,
-    yarn:document.getElementById('f-yarn').value.trim(),
-    hook:document.getElementById('f-hook').value.trim(),
-    source:document.getElementById('f-source').value.trim(),
-    notes:document.getElementById('f-notes').value.trim(),
-    sections,
-    fav:false,pdfName:pendingPdfName||null});
-  if(pendingPdfData)localStorage.setItem('crochet_pdf_'+id,pendingPdfData);
-  pendingPdfData=null;pendingPdfName=null;
-  // Upload pending images: try Supabase, fall back to storing as-is (already compressed b64)
-  if(pendingPatternImages.length){
-    const uploaded=[];
-    for(let i=0;i<pendingPatternImages.length;i++){
-      const b64=pendingPatternImages[i];
-      if(typeof uploadImageToSupabase==='function'){
-        const res=await fetch(b64); const blob=await res.blob();
-        const url=await uploadImageToSupabase(blob,`patterns/pat_${id}_${i}.jpg`);
-        uploaded.push(url||b64);
-      } else { uploaded.push(b64); }
+  try{
+    const name=document.getElementById('f-name').value.trim();
+    if(!name){document.getElementById('f-name').style.borderColor='#e24b4a';return;}
+    const id=nextPatId++;
+    const sections=textToSections(document.getElementById('f-steps').value.trim());
+    patterns.push({id,name,
+      category:document.getElementById('f-cat').value,
+      difficulty:document.getElementById('f-diff').value,
+      yarn:document.getElementById('f-yarn').value.trim(),
+      hook:document.getElementById('f-hook').value.trim(),
+      source:document.getElementById('f-source').value.trim(),
+      notes:document.getElementById('f-notes').value.trim(),
+      sections,
+      fav:false,pdfName:pendingPdfName||null});
+    if(pendingPdfData)localStorage.setItem('crochet_pdf_'+id,pendingPdfData);
+    pendingPdfData=null;pendingPdfName=null;
+    // Upload pending images: try Supabase, fall back to storing as-is (already compressed b64)
+    if(pendingPatternImages.length){
+      const uploaded=[];
+      for(let i=0;i<pendingPatternImages.length;i++){
+        const b64=pendingPatternImages[i];
+        try{
+          if(typeof uploadImageToSupabase==='function'){
+            const res=await fetch(b64); const blob=await res.blob();
+            const url=await uploadImageToSupabase(blob,`patterns/pat_${id}_${i}.jpg`);
+            uploaded.push(url||b64);
+          } else { uploaded.push(b64); }
+        }catch(err){
+          showToast('Error uploading pattern image: '+err.message);
+          uploaded.push(b64);
+        }
+      }
+      savePatternImages(id,uploaded); pendingPatternImages=[];
+    } else if(pendingPatternImageData){
+      try{
+        if(typeof uploadImageToSupabase==='function'){
+          const res=await fetch(pendingPatternImageData); const blob=await res.blob();
+          const url=await uploadImageToSupabase(blob,`patterns/pat_${id}_0.jpg`);
+          savePatternImages(id,[url||pendingPatternImageData]);
+        } else { savePatternImages(id,[pendingPatternImageData]); }
+      }catch(err){
+        showToast('Error uploading pattern image: '+err.message);
+        savePatternImages(id,[pendingPatternImageData]);
+      }
+      pendingPatternImageData=null;
     }
-    savePatternImages(id,uploaded); pendingPatternImages=[];
-  } else if(pendingPatternImageData){
-    if(typeof uploadImageToSupabase==='function'){
-      const res=await fetch(pendingPatternImageData); const blob=await res.blob();
-      const url=await uploadImageToSupabase(blob,`patterns/pat_${id}_0.jpg`);
-      savePatternImages(id,[url||pendingPatternImageData]);
-    } else { savePatternImages(id,[pendingPatternImageData]); }
-    pendingPatternImageData=null;
+    savePatterns();closeEditScreen();renderLibrary();
+  }catch(err){
+    showToast('Error saving pattern: '+err.message);
   }
-  savePatterns();closeEditScreen();renderLibrary();
 }
 function saveEditPattern(id){
   const p=patterns.find(x=>x.id===id);
@@ -1390,14 +1437,22 @@ function handlePatMediaDrop(e){
   else if(f.type.startsWith('image/'))loadPatternImage(f);
 }
 async function loadPatternImage(file){
-  const blob=await compressImage(file);
-  const r=new FileReader();
-  r.onload=ev=>{
-    pendingPatternImageData=ev.target.result;
-    const dz=document.getElementById('pdf-dz'),pr=document.getElementById('pdf-preview'),nm=document.getElementById('pdf-preview-name');
-    if(dz)dz.style.display='none';if(pr)pr.style.display='flex';if(nm)nm.textContent='🖼 '+file.name;
-  };
-  r.readAsDataURL(blob);
+  try{
+    const blob=await compressImage(file);
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{
+        pendingPatternImageData=ev.target.result;
+        const dz=document.getElementById('pdf-dz'),pr=document.getElementById('pdf-preview'),nm=document.getElementById('pdf-preview-name');
+        if(dz)dz.style.display='none';if(pr)pr.style.display='flex';if(nm)nm.textContent='🖼 '+file.name;
+      }catch(err){
+        showToast('Error loading image: '+err.message);
+      }
+    };
+    r.readAsDataURL(blob);
+  }catch(err){
+    showToast('Error processing image file: '+err.message);
+  }
 }
 function handlePdfDrop(e){
   e.preventDefault();document.getElementById('pdf-dz').classList.remove('drag-over');
