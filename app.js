@@ -1,4 +1,4 @@
-const APP_VERSION = "1.5.2";
+const APP_VERSION = "1.5.3";
 
 // ── Image compression ──────────────────────────────────────────────────
 // Resizes & re-encodes a File/Blob to JPEG, max 1000px wide, ~78% quality.
@@ -125,8 +125,15 @@ function showFinishToast(projectId){
 
 function triggerPhotoUpload(projectId){
   currentDetailId=projectId; currentDetailType='project';
-  const fi=document.getElementById('proj-photo-fi');
-  if(fi) fi.click();
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(inp);
+  inp.onchange=async e=>{
+    document.body.removeChild(inp);
+    if(e.target.files[0]) await handlePhotoSelect(e,projectId);
+  };
+  inp.click();
 }
 
 function saveProjects(){ localStorage.setItem('crochet_projects_v1',JSON.stringify(projects)); touchModified(); if(typeof queueSupabaseSync==='function')queueSupabaseSync(); }
@@ -401,7 +408,8 @@ function renderProjectDetail(p){
             <span style="font-size:32px">\uD83D\uDCF7</span>
             <p>${isDone?'Tap to add a photo of your finished piece':'Tap to add a progress photo'}</p>
           </div>
-          <input type="file" id="photo-fi-${p.id}" accept="image/*" style="display:none"
+          <input type="file" id="photo-fi-${p.id}" accept="image/*"
+            style="position:fixed;top:-9999px;left:-9999px;opacity:0"
             onchange="handlePhotoSelect(event,${p.id})"/>`}
     </div>`;
 
