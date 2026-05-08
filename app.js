@@ -1,4 +1,4 @@
-const APP_VERSION = "1.5.1";
+const APP_VERSION = "1.5.2";
 
 // ── Image compression ──────────────────────────────────────────────────
 // Resizes & re-encodes a File/Blob to JPEG, max 1000px wide, ~78% quality.
@@ -519,7 +519,10 @@ let pendingPatternImages = [];
 function addNewPatternImage(){
   const inp=document.createElement('input');
   inp.type='file'; inp.accept='image/*'; inp.multiple=true;
+  inp.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(inp);
   inp.onchange=async e=>{
+    document.body.removeChild(inp);
     const files=Array.from(e.target.files); if(!files.length) return;
     for(const file of files){
       const blob=await compressImage(file);
@@ -561,7 +564,10 @@ function refreshNewPatternPhotos(){
 function addPatternImageInEdit(patId){
   const inp=document.createElement('input');
   inp.type='file'; inp.accept='image/*'; inp.multiple=true;
+  inp.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(inp);
   inp.onchange=async e=>{
+    document.body.removeChild(inp);
     const files=Array.from(e.target.files); if(!files.length) return;
     const imgs=getPatternImages(patId);
     for(const file of files){
@@ -615,23 +621,19 @@ function savePatternImages(id,imgs){ localStorage.setItem('crochet_pat_imgs_'+id
 function addPatternImage(patId){
   const inp=document.createElement('input');
   inp.type='file'; inp.accept='image/*'; inp.multiple=true;
-  inp.onchange=e=>{
-    const files=Array.from(e.target.files);
-    let loaded=0;
+  inp.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(inp);
+  inp.onchange=async e=>{
+    document.body.removeChild(inp);
+    const files=Array.from(e.target.files); if(!files.length) return;
     const imgs=getPatternImages(patId);
-    files.forEach(file=>{
-      const r=new FileReader();
-      r.onload=ev=>{
-        imgs.push(ev.target.result);
-        savePatternImages(patId,imgs);
-        loaded++;
-        if(loaded===files.length){
-          const p=patterns.find(x=>x.id===patId);
-          if(p) renderPatternDetail(p);
-        }
-      };
-      r.readAsDataURL(file);
-    });
+    for(const file of files){
+      const result=await compressAndUpload(file,`patterns/pat_${patId}_${Date.now()}.jpg`);
+      imgs.push(result.value);
+    }
+    savePatternImages(patId,imgs);
+    const p=patterns.find(x=>x.id===patId);
+    if(p) renderPatternDetail(p);
   };
   inp.click();
 }
