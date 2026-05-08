@@ -1,4 +1,4 @@
-const APP_VERSION = "1.5.4";
+const APP_VERSION = "1.5.5";
 
 // ── Image compression ──────────────────────────────────────────────────
 // Resizes & re-encodes a File/Blob to JPEG, max 1000px wide, ~78% quality.
@@ -540,8 +540,9 @@ function addNewPatternImage(){
   document.body.appendChild(inp);
   inp.onchange=async e=>{
     try{
+      const files=Array.from(e.target.files);
       document.body.removeChild(inp);
-      const files=Array.from(e.target.files); if(!files.length) return;
+      if(!files.length) return;
       for(const file of files){
         try{
           const blob=await compressImage(file);
@@ -593,18 +594,19 @@ function addPatternImageInEdit(patId){
   document.body.appendChild(inp);
   inp.onchange=async e=>{
     try{
+      const files=Array.from(e.target.files);
       document.body.removeChild(inp);
-      const files=Array.from(e.target.files); if(!files.length) return;
+      if(!files.length) return;
       const imgs=getPatternImages(patId);
       for(const file of files){
         try{
           const result=await compressAndUpload(file,`patterns/pat_${patId}_${Date.now()}.jpg`);
-          imgs.push(result.value);
+          if(result?.value) imgs.push(result.value);
         }catch(err){
           showToast('Error uploading image: '+err.message);
         }
       }
-      savePatternImages(patId,imgs);
+      if(imgs.length) savePatternImages(patId,imgs);
       refreshEditPhotos(patId);
     }catch(err){
       showToast('Error adding images to pattern: '+err.message);
@@ -658,18 +660,19 @@ function addPatternImage(patId){
   document.body.appendChild(inp);
   inp.onchange=async e=>{
     try{
+      const files=Array.from(e.target.files);
       document.body.removeChild(inp);
-      const files=Array.from(e.target.files); if(!files.length) return;
+      if(!files.length) return;
       const imgs=getPatternImages(patId);
       for(const file of files){
         try{
           const result=await compressAndUpload(file,`patterns/pat_${patId}_${Date.now()}.jpg`);
-          imgs.push(result.value);
+          if(result?.value) imgs.push(result.value);
         }catch(err){
           showToast('Error uploading image: '+err.message);
         }
       }
-      savePatternImages(patId,imgs);
+      if(imgs.length) savePatternImages(patId,imgs);
       const p=patterns.find(x=>x.id===patId);
       if(p) renderPatternDetail(p);
     }catch(err){
