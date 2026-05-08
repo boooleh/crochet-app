@@ -597,3 +597,101 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 /* Badge on finished-projects button */
 .sb-profile-action{position:relative;}
 .sb-finished-badge{display:none;align-items:center;justify-content:center;margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#ec4899;color:#fff;font-size:.7rem;font-weight:700;line-height:1;}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Dark mode
+   ═══════════════════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:  #1c1520;
+    --bg2: #251b24;
+    --bg3: #2e2330;
+    --tx:  #f0e6ec;
+    --tx2: #b89aaa;
+    --bd:  rgba(220,100,130,0.22);
+    --bd2: rgba(220,100,130,0.40);
+    --ac:  #e8789a;
+    --acd: #f0a0bc;
+    --acl: rgba(232,120,154,0.15);
+  }
+
+  /* ── Screens & chrome ──────────────────────────────────────────── */
+  .screen            { background: var(--bg); }
+  .app-header        { background: var(--bg); }
+  .top-bar           { background: var(--bg); }
+  .tab-bar           { background: rgba(28,21,32,.96); }
+  .detail-bar        { background: rgba(28,21,32,.92); }
+
+  /* ── Header buttons ─────────────────────────────────────────────── */
+  .btn-header-add    { background: var(--bg2); }
+  .btn-header-backup { background: var(--bg2); }
+
+  /* ── Cards ──────────────────────────────────────────────────────── */
+  .card              { background: var(--bg2); border-color: var(--bd); }
+  .finished-card     { background: var(--bg2); border-color: var(--bd); }
+
+  /* ── Fav buttons (float over photos) ───────────────────────────── */
+  .fav-btn           { background: rgba(28,21,32,.82); }
+  .fav-btn:hover     { background: rgba(28,21,32,.95); }
+  .detail-hero-fav   { background: rgba(28,21,32,.82); }
+
+  /* ── Form inputs ────────────────────────────────────────────────── */
+  .filters input,
+  .filters select    { background: var(--bg2); color: var(--tx); border-color: var(--bd); }
+  .form-row input,
+  .form-row select,
+  .form-row textarea { background: var(--bg2); color: var(--tx); border-color: var(--bd); }
+  .pstep-row-input   { background: var(--bg2); color: var(--tx); border-color: var(--bd); }
+  .pstep-section-title { background: transparent; color: var(--tx); }
+
+  /* ── Pattern steps builder ──────────────────────────────────────── */
+  .pstep-section        { background: var(--bg2); border-color: var(--bd); }
+  .pstep-section-header { background: var(--bg3); border-bottom-color: var(--bd); }
+
+  /* ── Steps tracker ──────────────────────────────────────────────── */
+  .steps-section     { background: var(--bg2); border-color: var(--bd); }
+  .step-row          { background: rgba(255,255,255,.04); }
+  .step-row:hover    { background: rgba(255,255,255,.08); border-color: var(--bd); }
+
+  /* ── Interactive surfaces ───────────────────────────────────────── */
+  .chip              { background: rgba(255,255,255,.06); }
+  .pattern-ref-card  { background: rgba(255,255,255,.06); }
+  .picker-item       { background: rgba(255,255,255,.06); }
+  .picker-none       { background: rgba(255,255,255,.03); }
+  .info-strip        { background: rgba(255,255,255,.04); }
+  .info-strip-body   { border-top-color: var(--bd); }
+
+  /* ── Upload & attachment zones ──────────────────────────────────── */
+  .photo-upload-zone  { background: var(--bg2); }
+  .pdf-drop           { background: var(--bg2); }
+  .pattern-media-drop { background: var(--bg2); border-color: var(--bd); }
+  .pdf-attached-row   { background: var(--bg2); border-color: var(--bd); }
+
+  /* ── Backup sheet ───────────────────────────────────────────────── */
+  .backup-sheet        { background: var(--bg2); }
+  .backup-sheet-handle { background: var(--bd2); }
+  .backup-sheet-title  { color: var(--tx); }
+  .backup-sheet-desc   { color: var(--tx2); }
+  .backup-btn-import   { background: var(--bg3); color: var(--tx); border-color: var(--bd); }
+
+  /* ── Progress bars ──────────────────────────────────────────────── */
+  .proj-card-progress-bg { background: rgba(255,255,255,.10); }
+  .detail-progress-bg    { background: rgba(255,255,255,.10); }
+
+  /* ── Hero & placeholders ────────────────────────────────────────── */
+  .detail-hero { background: linear-gradient(135deg,#2a2845,#1e1a38); }
+  .card-photo-placeholder,
+  .pat-detail-placeholder { background: linear-gradient(135deg,#2a2845,#1e1a38); }
+  .detail-hero-photo-placeholder {
+    background: rgba(255,255,255,.08);
+    border-color: rgba(255,255,255,.18);
+  }
+  .gallery-main-empty,
+  .finished-card-photo-placeholder { background: linear-gradient(135deg,#2d1f28,#261a35); }
+
+  /* ── Status badges ──────────────────────────────────────────────── */
+  .badge-medium { background: #3a2800; color: #fbbf24; }
+
+  /* ── Avatar dot ─────────────────────────────────────────────────── */
+  .sb-avatar-dot { border-color: var(--bg); }
+}

@@ -18,7 +18,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png"/>
 <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png"/>
 <title>Crochet Corner</title>
-<style>html,body{background:#ffffff;overscroll-behavior:none;}</style>
+<style>html,body{background:#ffffff;overscroll-behavior:none;}@media(prefers-color-scheme:dark){html,body{background:#1c1520;}}</style>
 <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
@@ -350,6 +350,36 @@
 .sb-btn-text{background:none;border:none;color:#7B4FD8;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:0;}
 /* Signed-in user chip */
 .sb-user-chip{font-size:.7rem;color:#888;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;cursor:pointer;display:none;}
+/* ── Dark mode for auth & profile ──────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .sb-auth-card{background:#251b24;box-shadow:0 32px 80px rgba(0,0,0,.6);}
+  .sb-auth-input{background:#1c1520;color:#f0e6ec;border-color:rgba(220,100,130,0.22);}
+  .sb-auth-input:focus{background:#1c1520;border-color:#7B4FD8;box-shadow:0 0 0 3px rgba(123,79,216,.18);}
+  .sb-field-label{color:#b89aaa;}
+  .sb-auth-input:focus ~ .sb-field-label,
+  .sb-auth-input:not(:placeholder-shown) ~ .sb-field-label{color:#a78bfa;}
+  .sb-profile-sheet{background:#251b24;}
+  .sb-profile-handle{background:rgba(220,100,130,0.3);}
+  .sb-profile-email{color:#f0e6ec;}
+  .sb-profile-sync-lbl{color:#b89aaa;}
+  .sb-profile-divider{background:rgba(220,100,130,0.15);}
+  .sb-profile-action{color:#f0e6ec;}
+  .sb-profile-action:hover{background:rgba(255,255,255,0.06);}
+  .sb-profile-action-danger{color:#f87171;}
+  .sb-profile-action-danger .sb-profile-action-icon{color:#f87171;}
+  .sb-profile-version{color:#b89aaa;}
+  .sb-signout-card{background:#251b24;}
+  .sb-signout-text{color:#f0e6ec;}
+  .sb-signout-spinner{border-color:rgba(220,100,130,0.25);border-top-color:#7B4FD8;}
+  .sb-avatar-initials{background:rgba(232,120,154,0.18);color:#e8789a;}
+  .sb-tabs{border-color:rgba(220,100,130,0.25);}
+  .sb-tab{color:#b89aaa;}
+  .sb-tab.active{background:#7B4FD8;color:#fff;}
+  .sb-auth-footer{border-top-color:rgba(220,100,130,0.15);}
+  .sb-btn-skip{color:#b89aaa;}
+  .sb-btn-skip:hover{color:#f0e6ec;}
+  .sb-btn-text{color:#a78bfa;}
+}
 </style>
 
 <!-- ── Supabase JS SDK ─────────────────────────────────────────────── -->
