@@ -650,3 +650,44 @@ async function initSupabase() {
     }
   });
 }
+
+// ── Image Storage ──────────────────────────────────────────────────────
+// Bucket name — must match what you create in the Supabase dashboard.
+const IMG_BUCKET = 'crochet-images';
+
+/**
+ * Upload a Blob to Supabase Storage under the signed-in user's folder.
+ * Returns the public URL on success, or null if not signed in / upload fails.
+ */
+async function uploadImageToSupabase(blob, filename) {
+  if (!_sb || !_currentUser) return null;
+  const path = `${_currentUser.id}/${filename}`;
+  try {
+    const { error } = await _sb.storage
+      .from(IMG_BUCKET)
+      .upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+    if (error) { console.warn('[Storage] Upload failed:', error.message); return null; }
+    const { data } = _sb.storage.from(IMG_BUCKET).getPublicUrl(path);
+    return data?.publicUrl || null;
+  } catch (e) {
+    console.warn('[Storage] Upload error:', e.message);
+    return null;
+  }
+}
+
+/**
+ * Delete an image from Supabase Storage by its public URL.
+ * Silently does nothing if the URL isn't a Storage URL or user isn't signed in.
+ */
+async function deleteImageFromSupabase(url) {
+  if (!_sb || !_currentUser || !url) return;
+  try {
+    const marker = `/object/public/${IMG_BUCKET}/`;
+    const idx = url.indexOf(marker);
+    if (idx === -1) return;
+    const filePath = url.slice(idx + marker.length).split('?')[0];
+    await _sb.storage.from(IMG_BUCKET).remove([filePath]);
+  } catch (e) {
+    console.warn('[Storage] Delete error:', e.message);
+  }
+}
