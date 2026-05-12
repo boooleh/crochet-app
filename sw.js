@@ -1,16 +1,16 @@
-const CACHE = 'crochet-app-v1-5-5';
+const CACHE = 'crochet-v1.6.8';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './styles.css',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
 
-// JS files and version.txt are NOT pre-cached — always fetched fresh from network
+// Always fetch fresh from network — never serve stale code or styles
 const NETWORK_FIRST = [
   'app.js',
+  'styles.css',
   'supabase-config.js',
   'supabase-sync.js',
   'version.txt'
