@@ -1,4 +1,4 @@
-const APP_VERSION = "1.5.6";
+const APP_VERSION = "1.5.7";
 
 // ── Image compression ──────────────────────────────────────────────────
 // Resizes & re-encodes a File/Blob to JPEG, max 1000px wide, ~78% quality.
@@ -1090,53 +1090,102 @@ function closeModal(){}
 function projectFormHTML(p,prePatternId){
   const statuses=['Active','Done','Frogged'];
   const selPatId=p?p.patternId:(prePatternId||null);
-  const pickerItems=`
-    <div class="picker-none${selPatId===null?' selected':''}" id="pick-none" onclick="selectPattern(null)">
-      <div class="picker-item-icon" style="background:linear-gradient(135deg,#c9b8ff,#e0d4ff)">✦</div>
-      <div>
-        <div class="picker-item-name">Freestyle</div>
-        <div class="picker-item-meta">No pattern — freeform project</div>
+  const isNewFromPattern=!p&&prePatternId!=null;
+  const isEditing=!!p;
+
+  // Pattern section — compact summary when starting from a pattern, full picker otherwise
+  let patternSection='';
+  if(isNewFromPattern){
+    const pat=patterns.find(x=>x.id===prePatternId);
+    const imgs=pat?getPatternImages(pat.id):[];
+    const thumb=imgs.length
+      ?`<img src="${imgs[0]}" style="width:40px;height:40px;border-radius:var(--r);object-fit:cover;flex-shrink:0" alt=""/>`
+      :`<div style="width:40px;height:40px;border-radius:var(--r);background:var(--acl);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📄</div>`;
+    const meta=[pat&&pat.category,pat&&pat.difficulty].filter(Boolean).join(' · ');
+    patternSection=`
+    <input type="hidden" id="pj-pat-id" value="${prePatternId}"/>
+    <div style="display:flex;align-items:center;gap:12px;background:var(--bg2);border:1.5px solid var(--bd);border-radius:var(--r);padding:12px 14px;margin-bottom:1.25rem">
+      ${thumb}
+      <div style="min-width:0">
+        <div style="font-weight:700;font-size:14px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pat?esc(pat.name):'Pattern'}</div>
+        ${meta?`<div style="font-size:12px;color:var(--tx2);margin-top:2px">${meta}</div>`:''}
       </div>
-    </div>
-    ${patterns.map(pat=>{
-      const imgs=getPatternImages(pat.id);
-      const thumb=imgs.length
-        ?`<img src="${imgs[0]}" style="width:36px;height:36px;border-radius:var(--r);object-fit:cover;flex-shrink:0" alt=""/>`
-        :`<div class="picker-item-icon">📄</div>`;
-      return `<div class="picker-item${selPatId===pat.id?' selected':''}" id="pick-${pat.id}" onclick="selectPattern(${pat.id})">
-        ${thumb}
+    </div>`;
+  } else {
+    const pickerItems=`
+      <div class="picker-none${selPatId===null?' selected':''}" id="pick-none" onclick="selectPattern(null)">
+        <div class="picker-item-icon" style="background:linear-gradient(135deg,#c9b8ff,#e0d4ff)">✦</div>
         <div>
-          <div class="picker-item-name">${esc(pat.name)}</div>
-          <div class="picker-item-meta">${[pat.category,pat.difficulty].filter(Boolean).join(' · ')}</div>
+          <div class="picker-item-name">Freestyle</div>
+          <div class="picker-item-meta">No pattern — freeform project</div>
         </div>
-      </div>`;
-    }).join('')}`;
+      </div>
+      ${patterns.map(pat=>{
+        const imgs=getPatternImages(pat.id);
+        const thumb=imgs.length
+          ?`<img src="${imgs[0]}" style="width:36px;height:36px;border-radius:var(--r);object-fit:cover;flex-shrink:0" alt=""/>`
+          :`<div class="picker-item-icon">📄</div>`;
+        return `<div class="picker-item${selPatId===pat.id?' selected':''}" id="pick-${pat.id}" onclick="selectPattern(${pat.id})">
+          ${thumb}
+          <div>
+            <div class="picker-item-name">${esc(pat.name)}</div>
+            <div class="picker-item-meta">${[pat.category,pat.difficulty].filter(Boolean).join(' · ')}</div>
+          </div>
+        </div>`;
+      }).join('')}`;
+    patternSection=`
+    <div class="form-row"><label>Pattern (optional)</label>
+      <div class="picker-list">${pickerItems}</div>
+      <input type="hidden" id="pj-pat-id" value="${selPatId!==null?selPatId:''}"/>
+    </div>`;
+  }
+
+  // Freestyle steps — only when no pattern and creating new
+  const stepsSection=(!p||!p.patternId)&&!isNewFromPattern?`
+    <div class="form-row"><label>Your steps (one per line, freestyle only)</label>
+      <textarea id="pj-steps" placeholder="Each line becomes a tappable step…">${p&&p.steps?(p.steps||[]).join('\n'):''}</textarea></div>`:'';
+
+  // Status — always shown when editing, hidden when starting fresh from a pattern
+  const statusSection=isNewFromPattern?
+    `<input type="hidden" id="pj-status" value="Active"/>`:
+    `<div class="form-row"><label>Status</label>
+      <select id="pj-status">${statuses.map(s=>`<option${p&&p.status===s?' selected':''}>${s}</option>`).join('')}</select></div>`;
+
+  // Dates — when editing show both; when starting from pattern tuck into more options
+  const datesHTML=`
+    <div class="form-row-2">
+      <div class="form-row" style="margin-bottom:0"><label>Start date</label>
+        <input type="date" id="pj-start" value="${p?p.startDate||'':''}" autocomplete="off"/></div>
+      <div class="form-row" style="margin-bottom:0"><label>End date</label>
+        <input type="date" id="pj-end" value="${p?p.endDate||'':''}" autocomplete="off"/></div>
+    </div>`;
+
+  const notesHTML=`
+    <div class="form-row"><label>Notes</label>
+      <textarea id="pj-notes" placeholder="Notes specific to this make…">${p?esc(p.notes||''):''}</textarea></div>`;
+
+  const moreOptions=isNewFromPattern?`
+    <div style="margin-bottom:1.25rem">
+      <button type="button" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'▸ More options':'▾ More options'" style="background:none;border:none;color:var(--tx2);font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;padding:0;display:flex;align-items:center;gap:4px">
+        <span>▸ More options</span>
+      </button>
+      <div style="display:none;margin-top:1rem">${datesHTML}${notesHTML}</div>
+    </div>`
+    :`${datesHTML}${notesHTML}`;
 
   return `
     <div class="form-row"><label>Project name</label>
       <input id="pj-name" value="${p?esc(p.name):''}" placeholder="e.g. Blanket for Mum" autocomplete="off"/></div>
-    <div class="form-row"><label>Status</label>
-      <select id="pj-status">${statuses.map(s=>`<option${p&&p.status===s?' selected':''}>${s}</option>`).join('')}</select></div>
-    <div class="form-row"><label>Pattern (optional)</label>
-      <div class="picker-list">${pickerItems}</div>
-      <input type="hidden" id="pj-pat-id" value="${selPatId!==null?selPatId:''}"/>
-    </div>
-    ${!p||!p.patternId?`<div class="form-row"><label>Your steps (one per line, freestyle only)</label>
-      <textarea id="pj-steps" placeholder="Each line becomes a tappable step…">${p&&p.steps?(p.steps||[]).join('\n'):''}</textarea></div>`:''}
+    ${statusSection}
+    ${patternSection}
+    ${stepsSection}
     <div class="form-row-2">
       <div class="form-row" style="margin-bottom:0"><label>Yarn</label>
         <input id="pj-yarn" value="${p?esc(p.yarn||''):''}" placeholder="e.g. Drops Lima – Teal" autocomplete="off"/></div>
       <div class="form-row" style="margin-bottom:0"><label>Hook</label>
         <input id="pj-hook" value="${p?esc(p.hook||''):''}" placeholder="e.g. 5.0mm" autocomplete="off"/></div>
     </div>
-    <div class="form-row-2">
-      <div class="form-row" style="margin-bottom:0"><label>Start date</label>
-        <input type="date" id="pj-start" value="${p?p.startDate||'':''}" autocomplete="off"/></div>
-      <div class="form-row" style="margin-bottom:0"><label>End date</label>
-        <input type="date" id="pj-end" value="${p?p.endDate||'':''}" autocomplete="off"/></div>
-    </div>
-    <div class="form-row"><label>Notes</label>
-      <textarea id="pj-notes" placeholder="Notes specific to this make…">${p?esc(p.notes||''):''}</textarea></div>
+    ${moreOptions}
     <div class="edit-save-footer">
       <button class="btn-save-bottom" onclick="submitEditScreen()">${p?'Save project':'Create project'}</button>
     </div>
