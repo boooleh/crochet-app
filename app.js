@@ -1,4 +1,4 @@
-const APP_VERSION = "1.5.9";
+const APP_VERSION = "1.6.0";
 
 // ── Image compression ──────────────────────────────────────────────────
 // Resizes & re-encodes a File/Blob to JPEG, max 1000px wide, ~78% quality.
@@ -1145,26 +1145,29 @@ function projectFormHTML(p,prePatternId){
     <div class="form-row"><label>Your steps (one per line, freestyle only)</label>
       <textarea id="pj-steps" placeholder="Each line becomes a tappable step…">${p&&p.steps?(p.steps||[]).join('\n'):''}</textarea></div>`:'';
 
-  // Status — always shown when editing, hidden when starting fresh from a pattern
-  const statusSection=isNewFromPattern?
+  // Status — hidden for all new projects (always Active), shown when editing
+  const statusSection=!p?
     `<input type="hidden" id="pj-status" value="Active"/>`:
     `<div class="form-row"><label>Status</label>
       <select id="pj-status">${statuses.map(s=>`<option${p&&p.status===s?' selected':''}>${s}</option>`).join('')}</select></div>`;
 
-  // Dates — when editing show both; when starting from pattern tuck into more options
-  const datesHTML=`
+  // Dates — editing: show both start + end; new project: only start date (end date hidden)
+  const datesHTML=p?`
     <div class="form-row-2">
       <div class="form-row" style="margin-bottom:0"><label>Start date</label>
-        <input type="date" id="pj-start" value="${p?p.startDate||'':''}" autocomplete="off"/></div>
+        <input type="date" id="pj-start" value="${p.startDate||''}" autocomplete="off"/></div>
       <div class="form-row" style="margin-bottom:0"><label>End date</label>
-        <input type="date" id="pj-end" value="${p?p.endDate||'':''}" autocomplete="off"/></div>
-    </div>`;
+        <input type="date" id="pj-end" value="${p.endDate||''}" autocomplete="off"/></div>
+    </div>`:`
+    <div class="form-row"><label>Start date</label>
+      <input type="date" id="pj-start" autocomplete="off"/></div>`;
 
   const notesHTML=`
     <div class="form-row"><label>Notes</label>
       <textarea id="pj-notes" placeholder="Notes specific to this make…">${p?esc(p.notes||''):''}</textarea></div>`;
 
-  const moreOptions=isNewFromPattern?`
+  // More options — collapsed for all new projects, always visible when editing
+  const moreOptions=!p?`
     <div style="margin-bottom:1.25rem">
       <button type="button" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'▸ More options':'▾ More options'" style="background:none;border:none;color:var(--tx2);font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;padding:0;display:flex;align-items:center;gap:4px">
         <span>▸ More options</span>
@@ -1227,9 +1230,9 @@ function saveNewProject(){
     status:document.getElementById('pj-status').value,
     yarn:document.getElementById('pj-yarn').value.trim(),
     hook:document.getElementById('pj-hook').value.trim(),
-    startDate:document.getElementById('pj-start').value||null,
-    endDate:document.getElementById('pj-end').value||null,
-    notes:document.getElementById('pj-notes').value.trim(),
+    startDate:document.getElementById('pj-start')?.value||null,
+    endDate:document.getElementById('pj-end')?.value||null,
+    notes:document.getElementById('pj-notes')?.value.trim()||'',
     fav:false,photoKey,updatedAt:Date.now()});
   saveProjects();closeEditScreen();renderProjects();
 }
