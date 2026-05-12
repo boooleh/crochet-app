@@ -1,4 +1,4 @@
-const APP_VERSION = "1.6.3";
+const APP_VERSION = "1.6.5";
 
 // ── Image compression ──────────────────────────────────────────────────
 // Resizes & re-encodes a File/Blob to JPEG, max 1000px wide, ~78% quality.
@@ -170,6 +170,26 @@ function diffBadge(d){ const c=d==='Easy'?'easy':d==='Medium'?'medium':'hard'; r
 
 // ── Navigation ────────────────────────────────────────────────────
 let activeTab = 'projects';
+
+function openSearch(prefix){
+  document.getElementById(prefix+'-search-toggle').style.display='none';
+  const expand=document.getElementById(prefix+'-search-expand');
+  expand.classList.add('open');
+  // hide selects
+  document.querySelectorAll('#'+prefix+'-filters select').forEach(s=>s.style.display='none');
+  const inp=document.getElementById(prefix+'-search');
+  if(inp){inp.value='';inp.focus();}
+}
+function closeSearch(prefix){
+  const expand=document.getElementById(prefix+'-search-expand');
+  expand.classList.remove('open');
+  document.getElementById(prefix+'-search-toggle').style.display='';
+  document.querySelectorAll('#'+prefix+'-filters select').forEach(s=>s.style.display='');
+  const inp=document.getElementById(prefix+'-search');
+  if(inp){inp.value='';}
+  if(prefix==='proj') renderProjects();
+  else renderLibrary();
+}
 
 function switchTab(tab){
   if(activeTab===tab) return;

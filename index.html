@@ -45,8 +45,16 @@
         <div style="padding:0.75rem 0 0.25rem">
           <span class="count-lbl" id="proj-count-lbl">0 projects</span>
         </div>
-        <div class="filters">
-          <input type="text" id="proj-search" placeholder="Search projects…" oninput="renderProjects()" autocomplete="off"/>
+        <div class="filters" id="proj-filters">
+          <button class="btn-search-toggle" id="proj-search-toggle" onclick="openSearch('proj')" aria-label="Search projects">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <div class="search-expand" id="proj-search-expand">
+            <button class="btn-search-back" onclick="closeSearch('proj')" aria-label="Close search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <input type="text" id="proj-search" placeholder="Search projects…" oninput="renderProjects()" autocomplete="off"/>
+          </div>
           <select id="proj-sort" onchange="renderProjects()">
             <option value="updated">Last updated</option>
             <option value="name">Name A–Z</option>
@@ -77,8 +85,16 @@
         <div style="padding:0.75rem 0 0.25rem">
           <span class="count-lbl" id="lib-count-lbl">0 patterns</span>
         </div>
-        <div class="filters">
-          <input type="text" id="lib-search" placeholder="Search…" oninput="renderLibrary()" autocomplete="off"/>
+        <div class="filters" id="lib-filters">
+          <button class="btn-search-toggle" id="lib-search-toggle" onclick="openSearch('lib')" aria-label="Search patterns">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <div class="search-expand" id="lib-search-expand">
+            <button class="btn-search-back" onclick="closeSearch('lib')" aria-label="Close search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <input type="text" id="lib-search" placeholder="Search patterns…" oninput="renderLibrary()" autocomplete="off"/>
+          </div>
           <select id="lib-cat-filter" onchange="renderLibrary()">
             <option value="">All categories</option>
             <option>Amigurumi</option><option>Blanket</option><option>Hat</option>
