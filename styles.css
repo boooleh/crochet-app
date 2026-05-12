@@ -92,7 +92,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
   cursor:pointer;box-shadow:0 4px 14px rgba(232,120,154,.35);transition:box-shadow .2s,transform .15s}
 .btn-add:hover{box-shadow:0 6px 20px rgba(232,120,154,.45);transform:translateY(-1px)}
 .btn-add:active{transform:scale(.97)}
-.filters{display:flex;gap:8px;margin-top:0.75rem;margin-bottom:0.5rem;align-items:center}
+.filters{display:flex;gap:8px;margin-top:0.75rem;margin-bottom:1.25rem;align-items:center}
 .btn-search-toggle{width:44px;height:44px;border-radius:12px;border:1.5px solid #dadfff;
   background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
   color:var(--tx2);flex-shrink:0;transition:border-color .15s,color .15s;}
@@ -123,8 +123,8 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .card:hover{border-color:#bfc7ff;transform:translateY(-3px);box-shadow:0 8px 28px rgba(144,154,232,.22)}
 .card:active{border-color:#ffbfd8;transform:scale(.97)}
 .card.selected{border-color:#909ae8}
-.card-photo{width:100%;height:160px;object-fit:cover;display:block}
-.card-photo-placeholder{width:100%;height:150px;background:linear-gradient(135deg,#e8e6ff,#ddd9ff);
+.card-photo{width:100%;height:110px;object-fit:cover;display:block}
+.card-photo-placeholder{width:100%;height:100px;background:linear-gradient(135deg,#e8e6ff,#ddd9ff);
   display:flex;align-items:center;justify-content:center;}
 
 /* Pattern card photo */

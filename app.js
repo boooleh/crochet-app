@@ -1,4 +1,4 @@
-const APP_VERSION = "1.6.5";
+const APP_VERSION = "1.6.7";
 
 // ── Image compression ──────────────────────────────────────────────────
 // Resizes & re-encodes a File/Blob to JPEG, max 1000px wide, ~78% quality.
