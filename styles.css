@@ -38,7 +38,13 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .app-header-logo{height:44px;width:auto;display:block;
   position:absolute;left:50%;transform:translateX(-50%);
   image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;}
-.app-header-side{width:44px;flex-shrink:0;}
+.app-header-side{flex-shrink:0;display:flex;justify-content:flex-end;align-items:center;}
+.btn-header-pill{height:36px;background:#fff;color:var(--tx2);border:1.5px solid var(--bd);
+  border-radius:99px;padding:0 14px;font-size:12px;font-weight:700;font-family:var(--font);
+  cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;
+  transition:background .15s,border-color .15s,color .15s;flex-shrink:0;}
+.btn-header-pill:hover{background:var(--acl);border-color:var(--ac);color:var(--ac);}
+.btn-header-pill:active{transform:scale(.97);}
 .btn-header-add{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--bd);
   background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
   color:var(--tx2);transition:background .15s,border-color .15s;}
