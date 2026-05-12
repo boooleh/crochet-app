@@ -89,6 +89,11 @@
             <option>Shawl</option><option>Bag</option><option>Clothing</option>
             <option>Home decor</option><option>Other</option>
           </select>
+          <select id="lib-sort" onchange="renderLibrary()">
+            <option value="updated">Last updated</option>
+            <option value="name">Name A–Z</option>
+            <option value="added">Date added</option>
+          </select>
         </div>
         <div class="grid" id="lib-grid"></div>
       </div>

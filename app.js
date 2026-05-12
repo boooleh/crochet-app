@@ -1,4 +1,4 @@
-const APP_VERSION = "1.5.5";
+const APP_VERSION = "1.5.6";
 
 // ── Image compression ──────────────────────────────────────────────────
 // Resizes & re-encodes a File/Blob to JPEG, max 1000px wide, ~78% quality.
@@ -493,9 +493,16 @@ function removeProjectPhoto(projId){
 function renderLibrary(){
   const q=document.getElementById('lib-search').value.toLowerCase();
   const cat=document.getElementById('lib-cat-filter').value;
+  const sortBy=document.getElementById('lib-sort')?.value||'updated';
   const list=patterns.filter(p=>
     (!q||p.name.toLowerCase().includes(q)||(p.notes||'').toLowerCase().includes(q))&&
     (!cat||p.category===cat));
+  list.sort((a,b)=>{
+    if(sortBy==='name') return a.name.localeCompare(b.name);
+    if(sortBy==='added') return (b.id)-(a.id);
+    // default: last updated
+    return (b.updatedAt||b.id)-(a.updatedAt||a.id);
+  });
   document.getElementById('lib-count-lbl').textContent=
     `${patterns.length} pattern${patterns.length!==1?'s':''}`;
   const grid=document.getElementById('lib-grid');
