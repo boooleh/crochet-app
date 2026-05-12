@@ -160,7 +160,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .proj-card-progress-wrap{position:relative;margin-top:10px;height:30px;display:flex;align-items:center}
 .proj-card-progress-bg{width:100%;height:6px;background:#f0eeff;border-radius:99px;overflow:hidden;position:relative}
 .proj-card-progress-bar{height:100%;background:linear-gradient(90deg,#e8789a,#f0a8bf);border-radius:99px;transition:width .4s}
-.proj-card-mascot{position:absolute;top:50%;transform:translate(-50%,-50%);
+.proj-card-mascot{position:absolute;top:50%;transform:translateY(-50%);
   width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15));
   transition:left .4s;pointer-events:none}
 .proj-pattern-link{font-size:12px;color:var(--ac);font-weight:700;margin-top:6px}
@@ -251,7 +251,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .detail-progress-wrap{position:relative;height:36px;display:flex;align-items:center;margin-bottom:10px}
 .detail-progress-bg{width:100%;height:8px;background:#f0eeff;border-radius:99px;overflow:hidden;position:relative}
 .detail-progress-bar{height:100%;background:linear-gradient(90deg,#e8789a,#f0a8bf);border-radius:99px;transition:width .4s}
-.detail-progress-mascot{position:absolute;top:50%;transform:translate(-50%,-50%);
+.detail-progress-mascot{position:absolute;top:50%;transform:translateY(-50%);
   width:32px;height:32px;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,.15));
   transition:left .4s;pointer-events:none}
 .btn-reset{background:none;border:none;font-size:12px;color:var(--tx2);cursor:pointer;font-family:var(--font);text-decoration:underline;font-weight:600}

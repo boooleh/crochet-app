@@ -1,4 +1,4 @@
-const APP_VERSION = "1.5.7";
+const APP_VERSION = "1.5.9";
 
 // ── Image compression ──────────────────────────────────────────────────
 // Resizes & re-encodes a File/Blob to JPEG, max 1000px wide, ~78% quality.
@@ -295,7 +295,7 @@ function renderProjects(){
           <div class="proj-card-progress-bg">
             <div class="proj-card-progress-bar" style="width:${pct}%"></div>
           </div>
-          <img class="proj-card-mascot" src="mascot.png" alt="" style="left:${Math.min(Math.max(pct,4),96)}%"/>
+          <img class="proj-card-mascot" src="mascot.png" alt="" style="left:clamp(0%,${pct}%,calc(100% - 28px))"/>
         </div>`:''}
       </div>
     </div>`;
@@ -384,7 +384,7 @@ function renderProjectDetail(p){
         <div class="detail-progress-bg">
           <div class="detail-progress-bar" id="steps-bar-${p.id}" style="width:${pct}%"></div>
         </div>
-        <img class="detail-progress-mascot" src="mascot.png" id="steps-mascot-${p.id}" style="left:${Math.min(Math.max(pct,4),96)}%" alt=""/>
+        <img class="detail-progress-mascot" src="mascot.png" id="steps-mascot-${p.id}" style="left:clamp(0%,${pct}%,calc(100% - 32px))" alt=""/>
       </div>
       <div class="steps-list">${sectionsHTML}</div>
       ${total>0?`<div id="finish-btn-wrap-${p.id}" style="display:${doneCount===total?'block':'none'};margin-top:14px;text-align:center">
@@ -896,7 +896,7 @@ function refreshProjSteps(id){
   if(lbl)lbl.textContent=`${doneCount} of ${total}`;
   if(pctEl)pctEl.textContent=pct+'%';
   const mascot=document.getElementById('steps-mascot-'+id);
-  if(mascot)mascot.style.left=Math.min(Math.max(pct,4),96)+'%';
+  if(mascot)mascot.style.left=`clamp(0%,${pct}%,calc(100% - 32px))`;
   // refresh section dots
   const p2=projects.find(x=>x.id===id);if(!p2)return;
   const pat2=patterns.find(x=>x.id===p2.patternId);
