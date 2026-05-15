@@ -93,30 +93,46 @@ async function supabaseSignOut() {
 // ── Data helpers ──────────────────────────────────────────────────────
 
 // Collects text data from localStorage for cloud sync.
-// Images and PDFs are intentionally excluded — they are large base64 strings
-// that cause timeouts on mobile connections. They remain local-only.
+// Image URLs (Supabase Storage links) sync across devices.
+// Base64 image fallbacks and PDFs stay local-only — they're large strings
+// that cause timeouts on mobile connections.
 function _gatherAllData() {
   const pats  = JSON.parse(localStorage.getItem('crochet_patterns_v2') || '[]');
   const projs = JSON.parse(localStorage.getItem('crochet_projects_v1') || '[]');
   const d = {
     patterns:     pats,
     projects:     projs,
-    projectSteps: {}
+    projectSteps: {},
+    patternImages: {} // map of patternId → array of image URLs (https only, no base64)
   };
   projs.forEach(p => {
     const steps = JSON.parse(localStorage.getItem('crochet_psteps_' + p.id) || '[]');
     if (steps.length) d.projectSteps[p.id] = steps;
   });
+  pats.forEach(p => {
+    const imgs = JSON.parse(localStorage.getItem('crochet_pat_imgs_' + p.id) || '[]');
+    // Only sync URLs — base64 entries are too large and are device-local fallbacks
+    const urls = imgs.filter(x => typeof x === 'string' && x.startsWith('http'));
+    if (urls.length) d.patternImages[p.id] = urls;
+  });
   return d;
 }
 
 // Writes a data blob (from Supabase) back into localStorage.
-// Only applies text data — images and PDFs stay local-only and are never overwritten.
+// Applies text data + pattern image URLs. PDFs and base64 image fallbacks stay local-only.
 function _applyDataToLocalStorage(d) {
   if (!d) return;
   if (Array.isArray(d.patterns)) localStorage.setItem('crochet_patterns_v2', JSON.stringify(d.patterns));
   if (Array.isArray(d.projects)) localStorage.setItem('crochet_projects_v1', JSON.stringify(d.projects));
   Object.entries(d.projectSteps || {}).forEach(([id, s]) => localStorage.setItem('crochet_psteps_' + id, JSON.stringify(s)));
+  // Merge pattern image URLs from cloud with any local base64 fallbacks so we
+  // don't lose offline-uploaded images that haven't been re-uploaded to Storage yet.
+  Object.entries(d.patternImages || {}).forEach(([id, cloudUrls]) => {
+    const localImgs = JSON.parse(localStorage.getItem('crochet_pat_imgs_' + id) || '[]');
+    const localBase64 = localImgs.filter(x => typeof x === 'string' && !x.startsWith('http'));
+    const merged = [...cloudUrls, ...localBase64];
+    localStorage.setItem('crochet_pat_imgs_' + id, JSON.stringify(merged));
+  });
 }
 
 // ── Push / Pull ───────────────────────────────────────────────────────
@@ -663,9 +679,11 @@ async function uploadImageToSupabase(blob, filename) {
   if (!_sb || !_currentUser) return null;
   const path = `${_currentUser.id}/${filename}`;
   try {
-    const { error } = await _sb.storage
-      .from(IMG_BUCKET)
-      .upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+    // Race the upload against a 15s timeout so a stalled network can't hang the save
+    const { error } = await Promise.race([
+      _sb.storage.from(IMG_BUCKET).upload(path, blob, { upsert: true, contentType: 'image/jpeg' }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Image upload timeout after 15s')), 15000))
+    ]);
     if (error) { console.warn('[Storage] Upload failed:', error.message); return null; }
     const { data } = _sb.storage.from(IMG_BUCKET).getPublicUrl(path);
     return data?.publicUrl || null;

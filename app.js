@@ -1,4 +1,4 @@
-const APP_VERSION = "1.6.10";
+const APP_VERSION = "1.6.13";
 
 // ── Image compression ──────────────────────────────────────────────────
 // Resizes & re-encodes a File/Blob to JPEG, max 1000px wide, ~78% quality.
@@ -308,7 +308,7 @@ function renderProjects(){
       <div class="proj-card-body">
         <div class="proj-card-row">
           <div class="proj-card-name">${esc(p.name)}</div>
-          <span class="status-pill ${statusCls}">${p.status}</span>
+          ${p.status==='Active'?'':`<span class="status-pill ${statusCls}">${p.status}</span>`}
         </div>
         <div class="proj-card-subtitle">${pat?esc(pat.name):'✦ Freestyle'}</div>
         ${steps.length?`<div class="proj-card-progress-wrap">
@@ -1888,6 +1888,8 @@ function showSimpleToast(msg){
   requestAnimationFrame(()=> t.classList.add('show'));
   setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(), 350); }, 2800);
 }
+// Alias so legacy showToast() calls don't throw ReferenceError and swallow errors silently
+function showToast(msg){ return showSimpleToast(msg); }
 
 // ── OS back-gesture / hardware back button support ────────────────
 // Replace the page-load history entry so the app starts at a known state
