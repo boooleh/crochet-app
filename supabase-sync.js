@@ -141,7 +141,8 @@ async function _pushToSupabase() {
   if (!_syncEnabled) return;
 
   const MAX_RETRIES  = 3;
-  const RETRY_DELAYS = [3000, 6000, 12000]; // wait 3s, 6s, 12s between attempts
+  const RETRY_DELAYS = [1000, 2000, 4000]; // wait 1s, 2s, 4s between attempts (was 3s, 6s, 12s)
+  const PUSH_TIMEOUT = 8000;                // 8s per attempt (was 15s)
 
   // Only show the orange syncing dot if the push takes longer than 900ms.
   const syncingTimer = setTimeout(() => _updateAvatarDot('syncing'), 900);
@@ -168,7 +169,7 @@ async function _pushToSupabase() {
       const { error } = await Promise.race([
         (async () => _sb.from('user_data').upsert(payload, { onConflict: 'user_id' }))(),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Sync timeout after 15s')), 15000)
+          setTimeout(() => reject(new Error(`Sync timeout after ${PUSH_TIMEOUT/1000}s`)), PUSH_TIMEOUT)
         )
       ]);
 
@@ -200,11 +201,11 @@ async function _pushToSupabase() {
 async function _pullFromSupabase(force = false) {
   if (!_sb || !_currentUser) return false;
   try {
-    // Race the pull against a 15-second timeout — without this it can hang forever
+    // Race the pull against an 8-second timeout — without this it can hang forever
     const { data: row, error } = await Promise.race([
       _sb.from('user_data').select('data').eq('user_id', _currentUser.id).maybeSingle(),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Pull timeout after 15s')), 15000)
+        setTimeout(() => reject(new Error('Pull timeout after 8s')), 8000)
       )
     ]);
     if (error) throw error;
@@ -640,6 +641,11 @@ async function initSupabase() {
   // ── Pull fresh data whenever the user switches back to the app ────
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState === 'visible' && _syncEnabled) {
+      // Skip the auto-pull if we synced within the last 10 seconds — quick tab
+      // switches shouldn't trigger a network roundtrip every time.
+      const lastSync = parseInt(localStorage.getItem('crochet_sync_at') || '0');
+      if (Date.now() - lastSync < 10000) return;
+
       // If there are unsaved local changes queued, flush them first so we
       // don't overwrite them when we pull from the cloud.
       if (_syncTimer) {
