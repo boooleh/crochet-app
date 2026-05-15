@@ -180,6 +180,11 @@
     <button class="sb-profile-action" onclick="sbTriggerSync();sbHideProfileSheet()">
       <span class="sb-profile-action-icon">☁</span> Sync now
     </button>
+    <button class="sb-profile-action" onclick="sbHideProfileSheet();sbShowSyncDetails()">
+      <span class="sb-profile-action-icon">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      </span> Sync details
+    </button>
     <button class="sb-profile-action" onclick="sbHideProfileSheet();showBackupSheet()">
       <span class="sb-profile-action-icon">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -194,6 +199,25 @@
 
     <div class="sb-profile-divider"></div>
     <div class="sb-profile-version">Crochet Corner · Version <span id="profile-version-lbl">–</span></div>
+  </div>
+</div>
+
+<!-- ── Sync details sheet ─────────────────────────────────────── -->
+<div id="sb-syncdetails-scrim" class="sb-profile-scrim" style="display:none" onclick="sbHideSyncDetails()">
+  <div class="sb-profile-sheet" onclick="event.stopPropagation()">
+    <div class="sb-profile-handle"></div>
+    <div style="padding:0 4px 8px">
+      <div style="font-size:18px;font-weight:800;color:var(--tx);margin-bottom:4px">Sync details</div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:14px">What's happening behind the scenes</div>
+    </div>
+    <div id="sb-syncdetails-body" style="font-size:13px;color:var(--tx);line-height:1.5;max-height:55vh;overflow-y:auto;padding:0 4px"></div>
+    <div class="sb-profile-divider"></div>
+    <button class="sb-profile-action" onclick="sbForceSyncFromDetails()">
+      <span class="sb-profile-action-icon">⟳</span> Try sync again
+    </button>
+    <button class="sb-profile-action" onclick="sbHideSyncDetails()">
+      <span class="sb-profile-action-icon">✕</span> Close
+    </button>
   </div>
 </div>
 

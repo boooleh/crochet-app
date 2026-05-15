@@ -178,6 +178,8 @@ async function _pushToSupabase() {
       // Success
       clearTimeout(syncingTimer);
       localStorage.setItem('crochet_sync_at', String(now));
+      localStorage.setItem('crochet_last_sync_kind', 'push');
+      localStorage.removeItem('crochet_last_sync_error'); // clear stale error on success
       _updateSyncBadge(true);
       _updateAvatarDot('synced');
       if (typeof showSimpleToast === 'function') showSimpleToast('☁️ Saved to cloud');
@@ -193,6 +195,7 @@ async function _pushToSupabase() {
   clearTimeout(syncingTimer);
   const reason = lastErr?.message || lastErr?.code || 'Unknown error';
   console.error('[Sync] Push failed after', MAX_RETRIES, 'attempts. Last error:', reason);
+  localStorage.setItem('crochet_last_sync_error', JSON.stringify({ kind: 'push', reason, at: Date.now() }));
   _updateSyncBadge(false);
   _updateAvatarDot('error');
   if (typeof showSimpleToast === 'function') showSimpleToast(`⚠️ Sync failed: ${reason}`);
@@ -256,7 +259,9 @@ async function _pullFromSupabase(force = false) {
     if(typeof APP_DEBUG!=='undefined'&&APP_DEBUG)console.log('[Sync] No cloud data found');
     return false;
   } catch (err) {
-    console.error('[Sync] Pull failed:', err?.message || err?.code || JSON.stringify(err));
+    const reason = err?.message || err?.code || JSON.stringify(err);
+    console.error('[Sync] Pull failed:', reason);
+    localStorage.setItem('crochet_last_sync_error', JSON.stringify({ kind: 'pull', reason, at: Date.now() }));
     return false;
   }
 }
@@ -304,6 +309,121 @@ function sbShowProfileSheet() {
 function sbHideProfileSheet() {
   const scrim = document.getElementById('sb-profile-scrim');
   if (scrim) scrim.style.display = 'none';
+}
+
+// ── Sync details sheet ──────────────────────────────────────────────────
+
+function _formatRelativeTime(ts) {
+  if (!ts || ts === 0) return 'never';
+  const diff = Date.now() - ts;
+  if (diff < 60_000)        return Math.round(diff/1000) + 's ago';
+  if (diff < 3_600_000)     return Math.round(diff/60_000) + ' min ago';
+  if (diff < 86_400_000)    return Math.round(diff/3_600_000) + ' h ago';
+  return Math.round(diff/86_400_000) + ' days ago';
+}
+
+function _formatSize(bytes) {
+  if (bytes < 1024)            return bytes + ' B';
+  if (bytes < 1024 * 1024)     return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+function sbShowSyncDetails() {
+  _renderSyncDetails();
+  const scrim = document.getElementById('sb-syncdetails-scrim');
+  if (scrim) { scrim.style.display = 'flex'; requestAnimationFrame(() => scrim.style.opacity = '1'); }
+}
+
+function sbHideSyncDetails() {
+  const scrim = document.getElementById('sb-syncdetails-scrim');
+  if (scrim) scrim.style.display = 'none';
+}
+
+async function sbForceSyncFromDetails() {
+  if (!_syncEnabled) {
+    if (typeof showSimpleToast === 'function') showSimpleToast('Sign in to sync ☁️');
+    return;
+  }
+  // Re-render after each step so the user sees progress
+  await _doSync();
+  _renderSyncDetails();
+}
+
+function _renderSyncDetails() {
+  const body = document.getElementById('sb-syncdetails-body');
+  if (!body) return;
+
+  const signedIn   = !!_currentUser;
+  const email      = _currentUser?.email || '—';
+  const lastSyncAt = parseInt(localStorage.getItem('crochet_sync_at') || '0');
+  const lastErr    = (() => { try { return JSON.parse(localStorage.getItem('crochet_last_sync_error') || 'null'); } catch { return null; } })();
+  const errIsRecent = lastErr && lastErr.at > lastSyncAt; // error newer than last success
+  const online    = navigator.onLine;
+
+  // Compute local data size that gets synced
+  let payloadBytes = 0;
+  try {
+    if (typeof _gatherAllData === 'function') {
+      payloadBytes = new Blob([JSON.stringify(_gatherAllData())]).size;
+    }
+  } catch (_) {}
+
+  // State label
+  const stateLabel = !signedIn        ? { txt: 'Offline mode (not signed in)', col: '#aaa' }
+                   : errIsRecent      ? { txt: 'Sync error — see below',         col: '#e05' }
+                   : _dotState === 'syncing' ? { txt: 'Syncing now…',           col: '#7B4FD8' }
+                   : lastSyncAt === 0 ? { txt: 'Not synced yet',                  col: '#aaa' }
+                   :                    { txt: 'Up to date',                      col: '#2a9d5c' };
+
+  const row = (lbl, val, color) => `
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)">
+      <span style="color:var(--tx2);font-weight:600">${lbl}</span>
+      <span style="color:${color || 'var(--tx)'};font-weight:700;text-align:right;max-width:60%;word-break:break-word">${val}</span>
+    </div>`;
+
+  let html = '';
+  html += row('Status',        stateLabel.txt, stateLabel.col);
+  html += row('Signed in as',  signedIn ? email : 'No one');
+  html += row('Last sync',     _formatRelativeTime(lastSyncAt));
+  html += row('Network',       online ? 'Online' : 'Offline', online ? '#2a9d5c' : '#e05');
+  html += row('Data to sync',  _formatSize(payloadBytes));
+  if (payloadBytes > 4_000_000) {
+    html += `<div style="margin-top:8px;padding:10px 12px;background:#fff4d6;border:1px solid #e8c873;border-radius:8px;color:#7a5a00;font-size:12px">
+      ⚠️ Your data is over 4 MB. Supabase may reject the upload. Try removing some large patterns or photos.
+    </div>`;
+  }
+
+  if (errIsRecent && lastErr) {
+    html += `<div style="margin-top:12px;padding:12px;background:#fee2e2;border:1px solid #f5b5b5;border-radius:8px">
+      <div style="font-weight:700;color:#a00;margin-bottom:4px">Last error</div>
+      <div style="font-size:12px;color:#7a0000">${_sbEsc(lastErr.kind)}: ${_sbEsc(lastErr.reason)}</div>
+      <div style="font-size:11px;color:#a55;margin-top:4px">${_formatRelativeTime(lastErr.at)}</div>
+    </div>`;
+  }
+
+  // Friendly tips based on what we see
+  const tips = [];
+  if (!signedIn)         tips.push('Sign in via the profile menu to enable cloud sync.');
+  if (!online)           tips.push('You are offline. Sync will resume when your network is back.');
+  if (errIsRecent && lastErr?.reason?.includes('timeout')) {
+    tips.push('Supabase may be slow or your free database may have paused after inactivity. Try sync again — the second attempt usually works.');
+  }
+  if (errIsRecent && lastErr?.reason?.toLowerCase().includes('jwt')) {
+    tips.push('Your session may have expired. Sign out and back in.');
+  }
+  if (tips.length) {
+    html += `<div style="margin-top:12px;padding:12px;background:var(--bg2);border-radius:8px">
+      <div style="font-weight:700;font-size:12px;color:var(--tx2);margin-bottom:6px">Suggestions</div>
+      ${tips.map(t => `<div style="font-size:12px;color:var(--tx);margin-bottom:4px">• ${_sbEsc(t)}</div>`).join('')}
+    </div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+// Tiny local esc helper so this file doesn't depend on app.js (and doesn't clash with it)
+function _sbEsc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 
 // ── Change password sheet ─────────────────────────────────────────────
