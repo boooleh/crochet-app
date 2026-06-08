@@ -739,6 +739,9 @@ async function initSupabase() {
           if(typeof APP_DEBUG!=='undefined'&&APP_DEBUG)console.log('[Sync] Local is empty — skipping push to protect cloud data');
         }
       }
+      // Retry any base64 images that were saved while offline or before sign-in
+      await retryBase64Uploads();
+
       _updateSyncBadge(true);
       _updateAvatarDot('synced');
     } else {
@@ -816,6 +819,71 @@ async function uploadImageToSupabase(blob, filename) {
   } catch (e) {
     console.warn('[Storage] Upload error:', e.message);
     return null;
+  }
+}
+
+/**
+ * Scan localStorage for any base64 pattern images saved while offline or
+ * before sign-in, upload them to Supabase Storage, and replace the base64
+ * strings with the returned https:// URLs.
+ *
+ * Called once after successful sign-in so that images uploaded on any device
+ * eventually make it to the cloud and can sync everywhere.
+ */
+async function retryBase64Uploads() {
+  if (!_sb || !_currentUser) return;
+
+  // Find all pattern-image keys in localStorage
+  const patImgKeys = Object.keys(localStorage).filter(k => k.startsWith('crochet_pat_imgs_'));
+  if (!patImgKeys.length) return;
+
+  let anyUploaded = false;
+
+  for (const key of patImgKeys) {
+    let imgs;
+    try { imgs = JSON.parse(localStorage.getItem(key) || '[]'); } catch { continue; }
+
+    // Check if there are any base64 entries that need uploading
+    const hasBase64 = imgs.some(x => typeof x === 'string' && x.startsWith('data:'));
+    if (!hasBase64) continue;
+
+    const patId = key.replace('crochet_pat_imgs_', '');
+    const updated = [];
+
+    for (let i = 0; i < imgs.length; i++) {
+      const img = imgs[i];
+      if (typeof img === 'string' && img.startsWith('data:')) {
+        try {
+          // Convert base64 data URL → Blob → upload
+          const res  = await fetch(img);
+          const blob = await res.blob();
+          const url  = await uploadImageToSupabase(blob, `patterns/pat_${patId}_retry_${Date.now()}_${i}.jpg`);
+          if (url) {
+            updated.push(url);
+            anyUploaded = true;
+            if(typeof APP_DEBUG !== 'undefined' && APP_DEBUG)
+              console.log(`[Storage] Retry upload succeeded for ${key}[${i}]`);
+          } else {
+            updated.push(img); // keep base64 if upload failed, try again next sign-in
+          }
+        } catch (e) {
+          console.warn(`[Storage] Retry upload failed for ${key}[${i}]:`, e.message);
+          updated.push(img);
+        }
+      } else {
+        updated.push(img);
+      }
+    }
+
+    localStorage.setItem(key, JSON.stringify(updated));
+  }
+
+  // If we uploaded anything, push the updated image URLs to the cloud immediately
+  if (anyUploaded) {
+    if(typeof APP_DEBUG !== 'undefined' && APP_DEBUG)
+      console.log('[Storage] Retry uploads done — pushing updated image URLs to cloud');
+    await _pushToSupabase();
+    if (typeof showSimpleToast === 'function') showSimpleToast('☁️ Bilder uppladdade!');
   }
 }
 
