@@ -878,6 +878,41 @@ async function retryBase64Uploads() {
     localStorage.setItem(key, JSON.stringify(updated));
   }
 
+  // ── Project photos ──────────────────────────────────────────────
+  // Project photos saved while offline / before sign-in live as base64 under
+  // `crochet_photo_proj_<id>`, with the project pointing to it via `photoKey`.
+  // These were never retried before, so they stayed device-local. Upload them
+  // now and move the project over to a synced `photoUrl`.
+  try {
+    const projects = JSON.parse(localStorage.getItem('crochet_projects_v1') || '[]');
+    let projectsChanged = false;
+
+    for (const p of projects) {
+      if (!p.photoKey) continue;
+      const b64 = localStorage.getItem(p.photoKey);
+      if (!b64 || !b64.startsWith('data:')) continue;
+
+      try {
+        const res  = await fetch(b64);
+        const blob = await res.blob();
+        const url  = await uploadImageToSupabase(blob, `projects/proj_${p.id}_retry_${Date.now()}.jpg`);
+        if (url) {
+          p.photoUrl = url;
+          localStorage.removeItem(p.photoKey);
+          p.photoKey = null;
+          projectsChanged = true;
+          anyUploaded = true;
+        }
+      } catch (e) {
+        console.warn(`[Storage] Project photo retry failed for project ${p.id}:`, e.message);
+      }
+    }
+
+    if (projectsChanged) localStorage.setItem('crochet_projects_v1', JSON.stringify(projects));
+  } catch (e) {
+    console.warn('[Storage] Project photo retry scan failed:', e.message);
+  }
+
   // If we uploaded anything, push the updated image URLs to the cloud immediately
   if (anyUploaded) {
     if(typeof APP_DEBUG !== 'undefined' && APP_DEBUG)
